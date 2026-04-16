@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMR — Архив проектов</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Наш кастомный CSS -->
+    <link rel="stylesheet" href="static/corporate_reddit.css">
+</head>
+<body>
+    <!-- Хедер -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-code-branch"></i> CM<a href="#" class="easter-link">R</a> Safe Region 34
+            </div>
+            <div class="header-actions">
+                <!-- Исправлено: ссылка на корень сайта -->
+                <a href="/" class="back-button">
+                    <i class="fas fa-arrow-left"></i> Активные проекты
+                </a>
+                
+                <form action="/archive" method="get" class="search-form">
+                    <div class="search-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" name="q" class="search-input" placeholder="Поиск проектов..." value="{{ search_query or '' }}">
+                        <button type="submit" class="search-btn">Найти</button>
+                    </div>
+                </form>
+
+                <div class="user-info">
+                    <div class="user-badge">
+                        <i class="fas fa-user-circle"></i> <strong>{{ user_name }}</strong>
+                    </div>
+                    <!-- Исправлено: ссылка на маршрут разлогина -->
+                    <a href="/logout" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-container">
+        <!-- Герой-секция архива -->
+        <div class="archive-hero">
+            <div class="archive-hero-icon">
+                <i class="fas fa-archive"></i>
+            </div>
+            <div class="archive-hero-content">
+                <h1>Архив проектов</h1>
+                <p>Завершённые проекты и их резолюции. Здесь хранится история вашей работы.</p>
+            </div>
+            <div class="archive-stats">
+                <div class="stat-item">
+                    <i class="fas fa-folder-open"></i>
+                    <span class="stat-value">{{ projects|length }}</span>
+                    <span class="stat-label">проектов</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-comments"></i>
+                    <span class="stat-value">{{ total_comments|default(0) }}</span>
+                    <span class="stat-label">комментариев</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Фильтр и информация -->
+        <div class="archive-toolbar">
+            <div class="toolbar-info">
+                <i class="fas fa-info-circle"></i>
+                <span>Проекты в архиве доступны только для чтения</span>
+            </div>
+            {% if search_query %}
+            <div class="search-badge">
+                <i class="fas fa-search"></i>
+                Результаты поиска: "{{ search_query }}"
+                <a href="/archive" class="clear-search">
+                    <i class="fas fa-times"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Список проектов -->
+        <div class="archive-grid">
+            {% if projects %}
+                {% for p in projects %}
+                <a href="/project/{{ p[0] }}" class="archive-card-link">
+                    <div class="archive-card">
+                        <div class="archive-card-badge">
+                            <span class="badge badge-completed">
+                                <i class="fas fa-check-circle"></i> Завершён
+                            </span>
+                            <span class="archive-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                {{ p[3].strftime('%d.%m.%Y') if p[3] and p[3].strftime else 'Нет даты' }}
+                            </span>
+                        </div>
+                        
+                        <div class="archive-card-icon">
+                            <i class="fas fa-folder-archive"></i>
+                        </div>
+                        
+                        <h3 class="archive-card-title">{{ p[1] }}</h3>
+                        
+                        <p class="archive-card-description">
+                            {% if p[2] %}
+                                {{ p[2][:120] }}{% if p[2]|length > 120 %}...{% endif %}
+                            {% else %}
+                                <span class="text-secondary"><i class="fas fa-edit"></i> Описание отсутствует</span>
+                            {% endif %}
+                        </p>
+                        
+                        <div class="archive-card-footer">
+                            <div class="card-meta">
+                                <span><i class="fas fa-hashtag"></i> ID: {{ p[0] }}</span>
+                            </div>
+                            <span class="view-link">
+                                Просмотреть <i class="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="empty-archive">
+                    <div class="empty-archive-icon">
+                        <i class="fas fa-archive"></i>
+                        <i class="fas fa-search empty-overlay"></i>
+                    </div>
+                    <h3>{% if search_query %}Ничего не найдено{% else %}Архив пуст{% endif %}</h3>
+                    <p>
+                        {% if search_query %}
+                            Попробуйте изменить поисковый запрос или 
+                            <a href="archive.html" class="empty-link">сбросить фильтр</a>
+                        {% else %}
+                            Завершённые проекты будут автоматически появляться здесь.
+                            <br>Вы можете завершить активный проект на его странице.
+                        {% endif %}
+                    </p>
+                    {% if not search_query %}
+                    <a href="index.html" class="btn btn-primary empty-btn">
+                        <i class="fas fa-plus-circle"></i> К активным проектам
+                    </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Футер -->
+        <footer class="footer">
+            <div class="footer-content">
+                <i class="fas fa-shield-alt"></i>
+                <span>&copy; 2026 Морозов & Бабенко & Волков (DOK). Все резолюции имеют силу приказа.</span>
+                <i class="fas fa-file-signature"></i>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

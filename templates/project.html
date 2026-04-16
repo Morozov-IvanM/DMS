@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project[1] if project else 'Проект' }} | CMR Лента</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Наш кастомный CSS -->
+    <link rel="stylesheet" href="/static/corporate_reddit.css">
+</head>
+<body>
+    <!-- Хедер -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo-link">
+                <div class="logo">
+                    <i class="fas fa-code-branch"></i> CMR Safe Region 34
+                </div>
+            </a>
+            <div class="header-actions">
+                <a href="/" class="back-button">
+                    <i class="fas fa-arrow-left"></i> Назад к списку
+                </a>
+                {% if project and project[3] == 'Active' %}
+                <form action="/project/{{ project[0] }}/archive" method="post" class="inline-form" onsubmit="return confirm('Вы уверены, что хотите архивировать этот проект?');">
+                    <button type="submit" class="btn-archive">
+                        <i class="fas fa-archive"></i> В архив
+                    </button>
+                </form>
+                {% elif project and project[3] == 'Archived' %}
+                <form action="/project/{{ project[0] }}/restore" method="post" class="inline-form" onsubmit="return confirm('Восстановить проект и вернуть его в работу?');">
+                    <button type="submit" class="btn-restore">
+                        <i class="fas fa-undo-alt"></i> Восстановить
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="page-container">
+        {% if project %}
+            <!-- Карточка проекта -->
+            <div class="project-detail-card">
+                <div class="project-header">
+                    <div class="project-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <div class="project-info">
+                        <h1 class="project-title">{{ project[1] }}</h1>
+                        <div class="project-meta">
+                            {% if project[3] == 'Active' %}
+                            <span class="badge badge-resolution">
+                                <i class="fas fa-play-circle"></i> Активный
+                            </span>
+                            {% else %}
+                            <span class="badge badge-completed">
+                                <i class="fas fa-archive"></i> В архиве
+                            </span>
+                            {% endif %}
+                            <span class="project-id">
+                                <i class="fas fa-hashtag"></i> ID: {{ project[0] }}
+                            </span>
+                            <span class="comments-count-badge">
+                                <i class="fas fa-comments"></i> {{ comments|length }} записей
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if project[2] %}
+                <div class="project-description">
+                    <i class="fas fa-align-left"></i>
+                    <p>{{ project[2] }}</p>
+                </div>
+                {% else %}
+                <div class="project-description empty-desc">
+                    <i class="fas fa-edit"></i>
+                    <p>Описание отсутствует</p>
+                </div>
+                {% endif %}
+            </div>
+
+			<!-- ФОРМА ДОБАВЛЕНИЯ -->
+            {% if project[3] == 'Active' %}
+            <div class="add-comment-card">
+                <div class="section-header">
+                    <h3><i class="fas fa-plus-circle"></i> Написать сообщение</h3>
+                </div>
+                <form action="/project/{{ project[0] }}/comment" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="comment-text"><i class="fas fa-align-left"></i> Текст сообщения</label>
+                        <textarea id="comment-text" name="text" class="custom-textarea" placeholder="Введите ваше сообщение..." required rows="5"></textarea>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="file-input-simple"><i class="fas fa-paperclip"></i> Прикрепить файл</label>
+                        <input type="file" name="file" id="file-input-simple" class="form-control">
+                    </div>
+                    <div class="form-actions mt-3">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Отправить</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+				
+            <!-- Секция комментариев/файлов -->
+            <div class="comments-section-wrapper">
+                <div class="section-header">
+                    <h3>
+                        <i class="fas fa-comments"></i> Обсуждение
+                    </h3>
+                    <span class="comments-count">{{ comments|length }} записей</span>
+                </div>
+                <div class="comments-feed">
+                    {% if comments %}
+                        {% for c in comments %}
+                        <div class="comment-card" id="comment-{{ c[0] }}">
+                            <div class="comment-header">
+                                <div class="comment-avatar"><i class="fas fa-user-circle"></i></div>
+                                <div class="comment-author">{{ c[1] }}</div>
+                                
+                                <div class="comment-actions">
+                                    {% if c[1] == user_name %}
+                                    <button class="btn-edit-inline" onclick="toggleEdit('{{ c[0] }}')" title="Редактировать">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    {% endif %}
+                                    
+                                    <div class="comment-time">
+                                        <i class="fas fa-clock"></i>
+                                        {{ c[3].strftime('%d.%m.%Y %H:%M') if c[3] else '' }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="comment-body">
+                                <!-- Текст сообщения -->
+                                <p class="comment-text" id="text-{{ c[0] }}">{{ c[2] }}</p>
+
+                                <!-- Скрытая форма редактирования -->
+                                <div id="edit-form-{{ c[0] }}" style="display: none;" class="edit-comment-area">
+                                    <form action="/comment/{{ c[0] }}/edit" method="post">
+                                        <input type="hidden" name="p_id" value="{{ project[0] }}">
+                                        <textarea name="text" class="custom-textarea mb-2">{{ c[2] }}</textarea>
+                                        <div class="edit-actions">
+                                            <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+                                            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEdit('{{ c[0] }}')">Отмена</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                
+                                <!-- Файлы -->
+                                {% set ns = namespace(has_files=false) %}
+                                {% for f in attachments %}
+                                    {% if f[1]|int == c[0]|int %}
+                                        {% set ns.has_files = true %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if ns.has_files %}
+                                <div class="attachments mt-3">
+                                    <div class="attachments-title"><i class="fas fa-paperclip"></i> Прикреплённые файлы:</div>
+                                    <div class="attachments-list">
+                                        {% for f in attachments %}
+                                            {% if f[1]|int == c[0]|int %}
+                                            <a href="/download/{{ f[0] }}" class="file-link" target="_blank">
+                                                <i class="fas fa-file-alt"></i> {{ f[2] }}
+                                            </a>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state-comments">
+                            <i class="fas fa-comment-dots"></i>
+                            <p>Пока нет ни одного комментария</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            
+        {% endif %}
+    </div>
+
+    <script>
+    function toggleEdit(id) {
+        const text = document.getElementById('text-' + id);
+        const form = document.getElementById('edit-form-' + id);
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+            text.style.display = 'none';
+        } else {
+            form.style.display = 'none';
+            text.style.display = 'block';
+        }
+    }
+    </script>
+</body>
+</html>

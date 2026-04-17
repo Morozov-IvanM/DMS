@@ -304,6 +304,23 @@ async def download_chat_file(attach_id: int):
     if res and os.path.exists(res[0][0]): return FileResponse(path=res[0][0], filename=res[0][1])
     return HTMLResponse("Файл не найден", status_code=404)
 
+@app.post("/archive-project/{project_id}/")
+async def archive_project(project_id: int, user_name: str = Cookie(None)):
+    # 1. Проверяем авторизацию
+    if not user_name:
+        return RedirectResponse(url="/login", status_code=303)
+
+    # 2. Меняем статус проекта в базе данных
+    # Предполагаем, что у тебя есть колонка Status в таблице Projects
+    db.run('''
+        UPDATE public."Projects" 
+        SET "Status" = 'Archived' 
+        WHERE "Id" = :id
+    ''', id=project_id)
+
+    # 3. Возвращаемся на главную
+    return RedirectResponse(url="/", status_code=303)
+
 if __name__ == "__main__":
     import uvicorn
 

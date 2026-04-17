@@ -1,0 +1,45 @@
+<div class="header-content">
+	<div class="logo">
+		<i class="fas fa-code-branch"></i> CM<a href="EasterEgg.html" class="easter-link">R</a> Safe Region 34
+	</div>
+	<div class="header-actions">
+		<a href="/archive" class="btn-archive-link">
+			<i class="fas fa-archive"></i> Архив
+		</a>
+		<form action="/" method="get" class="search-form">
+			<div class="search-wrapper">
+				<i class="fas fa-search search-icon"></i>
+				<input type="text" name="q" class="search-input" placeholder="Поиск проектов..." value="{{ search_query or '' }}">
+				<button type="submit" class="search-btn">Найти</button>
+			</div>
+		</form>
+		<div class="user-info">
+			<div class="user-badge">
+				<i class="fas fa-user-circle"></i> <strong>{{ user_name }}</strong>
+			</div>
+			<a href="/logout" class="btn-logout">
+				<i class="fas fa-sign-out-alt"></i> Выйти
+			</a>
+		</div>
+	</div>
+</div>
+<style>
+	/* Убрали column-reverse, оставили обычный column */
+	.chat-box { display: flex; flex-direction: column; gap: 10px; padding: 15px; }
+	.chat-msg { max-width: 80%; padding: 8px 12px; border-radius: 15px; font-size: 0.9rem; position: relative; }
+	.msg-other { align-self: flex-start; background-color: #ffffff !important; border: 1px solid #dee2e6; color: #333; }
+	.msg-me { align-self: flex-end; background-color: #007bff !important; color: white !important; }
+	.chat-author { font-weight: bold; font-size: 0.75rem; display: block; margin-bottom: 2px; }
+	.chat-time { font-size: 0.65rem; opacity: 0.7; display: block; text-align: right; }
+	.mention-me { background: #ffc107; color: #212529; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
+</style>
+<div class="form-check form-switch ms-3">
+	<input class="form-check-input" type="checkbox" id="notifySwitch" 
+		   onclick="toggleNotifications(this.checked)" checked>
+	<label class="form-check-label small text-muted" for="notifySwitch">Уведомления</label>
+</div>
+
+<script>
+	// Устанавливаем положение свитча из памяти при загрузке
+	document.getElementById('notifySwitch').checked = localStorage.getItem('notifications_enabled') !== 'false';
+</script>	

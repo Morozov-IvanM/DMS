@@ -1,0 +1,27 @@
+<div class="right-column">
+	<div class="card recent-comments-card">
+		<div class="card-header">
+			<i class="fas fa-comment-dots"></i> Последние комментарии
+		</div>
+		<div class="card-body p-0">
+			<div class="comments-list-sidebar">
+				{% if last_comments %}
+					{% for c in last_comments %}
+					<a href="/project/{{ c[3] }}" class="recent-comment-item">
+						<div class="comment-header-sidebar">
+							<span class="comment-project">{{ c[2] }}</span>
+							<span class="comment-author-sidebar">{{ c[1] }}</span>
+						</div>
+						<div class="comment-preview">{{ c[0][:100] }}{% if c[0]|length > 100 %}...{% endif %}</div>
+					</a>
+					{% endfor %}
+				{% else %}
+					<div class="empty-recent">
+						<i class="fas fa-comment-slash"></i>
+						<p>Комментариев пока нет</p>
+					</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>

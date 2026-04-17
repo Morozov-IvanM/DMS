@@ -1,0 +1,44 @@
+<div class="left-column">
+	<div class="section-header">
+		<h3>
+			<i class="fas fa-play-circle"></i> Активные проекты
+		</h3>
+		<span class="projects-count">{{ projects|length }}</span>
+	</div>
+
+	<div class="projects-grid">
+		{% if projects %}
+			{% for p in projects %}
+			<a href="/project/{{ p[0] }}" class="project-link">
+				<div class="project-grid-card">
+					<div class="project-card-header">
+						<span class="project-id-badge">#{{ p[0] }}</span>
+						<span class="badge badge-resolution">
+							<i class="fas fa-play-circle"></i> Активен
+						</span>
+					</div>
+					<h4 class="project-card-title">{{ p[1] }}</h4>
+					<p class="project-card-description">
+						{% if p[2] %}
+							{{ p[2][:80] }}{% if p[2]|length > 80 %}...{% endif %}
+						{% else %}
+							<span class="text-secondary"><i class="fas fa-edit"></i> Нет описания</span>
+						{% endif %}
+					</p>
+					<div class="project-card-footer">
+						<span class="card-action">
+							<i class="fas fa-comments"></i> Обсудить
+						</span>
+					</div>
+				</div>
+			</a>
+			{% endfor %}
+		{% else %}
+			<div class="empty-state-card">
+				<i class="fas fa-inbox"></i>
+				<h3>Нет активных проектов</h3>
+				<p>Создайте новый проект, используя форму выше.</p>
+			</div>
+		{% endif %}
+	</div>
+</div>

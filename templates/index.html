@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CMR — Лента проектов</title>
+	<link rel="stylesheet" href="static/bootstrap.min.css">
+	<link rel="stylesheet" href="static/bootstrap.bundle.min.js">
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Наш кастомный CSS -->
-    <link rel="stylesheet" href="static/corporate_reddit.css">
+	<link rel="stylesheet" href="static/corporate_reddit.css">
+	
 </head>
 <body>
     <!-- Хедер -->
@@ -250,24 +253,42 @@
                 </div>
             </div>
         </div>
-		<div class="card mt-4 shadow-sm border-0">
-			<div class="card-header bg-light fw-bold">Смена пароля</div>
-			<div class="card-body">
-				<form action="/change-password" method="post">
-					<div class="mb-3">
-						<label class="form-label small">Старый пароль</label>
-						<input type="password" name="old_password" class="form-control form-control-sm" required>
+		<!-- Скрытая кнопка Смены пароля Сама кнопка-->
+		<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#passwordModal">
+			Сменить пароль
+		</button>
+		 <!-- Скрытая кнопка Смены пароля Окно к ней-->
+		<div class="modal fade" id="passwordModal" tabindex="-1" style="display: none;" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content border-0 shadow">
+					<div class="modal-header bg-light">
+						<h5 class="modal-title" id="passwordModalLabel"><i class="fas fa-shield-alt me-2"></i>Безопасность аккаунта</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
 					</div>
-					<div class="mb-3">
-						<label class="form-label small">Новый пароль</label>
-						<input type="password" name="new_password" class="form-control form-control-sm" required>
-					</div>
-					<button type="submit" class="btn btn-outline-primary btn-sm">Обновить пароль</button>
-				</form>
+					<form action="/change-password" method="post">
+						<div class="modal-body">
+							<p class="text-muted small">Введите старый и новый пароли для обновления доступа Я тут.</p>
+							
+							<div class="mb-3">
+								<label class="form-label small fw-bold">Старый пароль</label>
+								<input type="password" name="old_password" class="form-control" placeholder="••••••••" required>
+							</div>
+							
+							<div class="mb-3">
+								<label class="form-label small fw-bold">Новый пароль</label>
+								<input type="password" name="new_password" class="form-control" placeholder="Минимум 6 символов" required>
+							</div>
+						</div>
+						<div class="modal-footer bg-light">
+							<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Отмена</button>
+							<button type="submit" class="btn btn-primary btn-sm">Сохранить изменения</button>
+						</div>
+					</form>
+				</div>
 			</div>
 		</div>
 
-
+	
         <!-- Футер -->
         <footer class="footer">
             <div class="footer-content">
@@ -280,8 +301,8 @@
 
 
 
-
 <script>
+
     // 1. Инициализация: берем максимальный ID из уже загруженных сообщений
       // Самый надежный способ: берем ID самого свежего сообщения из списка
     // Так как в Python стоит ORDER BY Id DESC, то первое сообщение в списке - самое новое.
@@ -463,7 +484,18 @@
     function toggleNotifications(status) {
         localStorage.setItem('notifications_enabled', status);
     }
+	<!-- Обновление окна после смены пароля -->
+	window.onload = function() {
+		const urlParams = new URLSearchParams(window.location.search);
+		if (urlParams.has('success') && urlParams.get('success') === 'password_changed') {
+			alert("Пароль успешно обновлен!");
+		}
+		if (urlParams.has('error') && urlParams.get('error') === 'wrong_old_password') {
+			alert("Ошибка: Старый пароль введен неверно.");
+		}
+	}
 </script>
 
+<script src="static/bootstrap.bundle.min.js"></script>
 </body>
 </html>

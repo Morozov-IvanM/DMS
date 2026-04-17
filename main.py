@@ -68,7 +68,7 @@ async def login(response: Response, login_field: str = Form(...), password: str 
     user_row = db.run('''
         SELECT "Username", "HashedPassword" 
         FROM public."Users" 
-        WHERE "Username" = :l OR "Email" = :l 
+        WHERE "Email" = :e
         LIMIT 1
     ''', e=login_field.strip().lower()) # Приводим к нижнему регистру для надежности
 
@@ -91,6 +91,43 @@ async def logout():
     response = RedirectResponse(url="/login", status_code=303)
     response.delete_cookie("user_name") # Удаляем куку
     return response
+
+@app.post("/change-password")
+async def change_password(
+    request: Request,
+    old_password: str = Form(...),
+    new_password: str = Form(...),
+    user_name: str = Cookie(None)
+):
+    if not user_name:
+        return RedirectResponse(url="/login", status_code=303)
+
+    # 1. Получаем текущий хеш пароля из базы
+    decoded_name = unquote(user_name)
+    user_row = db.run('''
+        SELECT "HashedPassword" FROM public."Users" 
+        WHERE "Username" = :u LIMIT 1
+    ''', u=decoded_name)
+
+    if not user_row:
+        return {"error": "Пользователь не найден"}
+
+    current_hashed_pass = user_row[0][0]
+
+    # 2. Проверяем, правильно ли введен старый пароль
+    if not verify_password(old_password, current_hashed_pass):
+        # Возвращаем на главную или в профиль с ошибкой
+        return RedirectResponse(url="/?error=wrong_old_password", status_code=303)
+
+    # 3. Хешируем новый пароль и обновляем базу
+    new_hashed = hash_password(new_password)
+    db.run('''
+        UPDATE public."Users" 
+        SET "HashedPassword" = :p 
+        WHERE "Username" = :u
+    ''', p=new_hashed, u=decoded_name)
+
+    return RedirectResponse(url="/?success=password_changed", status_code=303)
 
 
 # --- ГЛАВНАЯ СТРАНИЦА ---

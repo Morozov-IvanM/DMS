@@ -250,6 +250,23 @@
                 </div>
             </div>
         </div>
+		<div class="card mt-4 shadow-sm border-0">
+			<div class="card-header bg-light fw-bold">Смена пароля</div>
+			<div class="card-body">
+				<form action="/change-password" method="post">
+					<div class="mb-3">
+						<label class="form-label small">Старый пароль</label>
+						<input type="password" name="old_password" class="form-control form-control-sm" required>
+					</div>
+					<div class="mb-3">
+						<label class="form-label small">Новый пароль</label>
+						<input type="password" name="new_password" class="form-control form-control-sm" required>
+					</div>
+					<button type="submit" class="btn btn-outline-primary btn-sm">Обновить пароль</button>
+				</form>
+			</div>
+		</div>
+
 
         <!-- Футер -->
         <footer class="footer">
@@ -260,6 +277,10 @@
             </div>
         </footer>
     </div>
+
+
+
+
 <script>
     // 1. Инициализация: берем максимальный ID из уже загруженных сообщений
       // Самый надежный способ: берем ID самого свежего сообщения из списка

@@ -4,143 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CMR — Лента проектов</title>
-	<link rel="stylesheet" href="static/bootstrap.min.css">
-	<link rel="stylesheet" href="static/bootstrap.bundle.min.js">
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Наш кастомный CSS -->
-	<link rel="stylesheet" href="static/corporate_reddit.css">
-	
+    <link rel="stylesheet" href="{{ url_for('static', path='css/bootstrap.min.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', path='css/corporate_reddit.css') }}">
 </head>
 <body>
-    <!-- Хедер -->
+														<!-- Хедер -->
     <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <i class="fas fa-code-branch"></i> CM<a href="EasterEgg.html" class="easter-link">R</a> Safe Region 34
-            </div>
-            <div class="header-actions">
-                <a href="/archive" class="btn-archive-link">
-                    <i class="fas fa-archive"></i> Архив
-                </a>
-                <form action="/" method="get" class="search-form">
-                    <div class="search-wrapper">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" name="q" class="search-input" placeholder="Поиск проектов..." value="{{ search_query or '' }}">
-                        <button type="submit" class="search-btn">Найти</button>
-                    </div>
-                </form>
-                <div class="user-info">
-                    <div class="user-badge">
-                        <i class="fas fa-user-circle"></i> <strong>{{ user_name }}</strong>
-                    </div>
-                    <a href="/logout" class="btn-logout">
-                        <i class="fas fa-sign-out-alt"></i> Выйти
-                    </a>
-                </div>
-            </div>
-        </div>
-		<style>
-			/* Убрали column-reverse, оставили обычный column */
-			.chat-box { display: flex; flex-direction: column; gap: 10px; padding: 15px; }
-			.chat-msg { max-width: 80%; padding: 8px 12px; border-radius: 15px; font-size: 0.9rem; position: relative; }
-			.msg-other { align-self: flex-start; background-color: #ffffff !important; border: 1px solid #dee2e6; color: #333; }
-			.msg-me { align-self: flex-end; background-color: #007bff !important; color: white !important; }
-			.chat-author { font-weight: bold; font-size: 0.75rem; display: block; margin-bottom: 2px; }
-			.chat-time { font-size: 0.65rem; opacity: 0.7; display: block; text-align: right; }
-			.mention-me { background: #ffc107; color: #212529; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
-		</style>
-		<div class="form-check form-switch ms-3">
-			<input class="form-check-input" type="checkbox" id="notifySwitch" 
-				   onclick="toggleNotifications(this.checked)" checked>
-			<label class="form-check-label small text-muted" for="notifySwitch">Уведомления</label>
-		</div>
-
-		<script>
-			// Устанавливаем положение свитча из памяти при загрузке
-			document.getElementById('notifySwitch').checked = localStorage.getItem('notifications_enabled') !== 'false';
-		</script>	
+    {% include 'partials/header.html' %}    
     </header>
+																<!-- Глобальный чат -->
+	{% include 'partials/chat.html' %}
 		
-	<div class="card chat-card shadow-sm mb-4 border-0">
-		<div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
-			<span><i class="fas fa-comments"></i> Общий чат</span>
-			<span class="badge bg-secondary small" id="chat-status">Live</span>
-		</div>
-		<div class="card-body chat-box" id="chat-window" style="height: 350px; overflow-y: auto; background: #f0f2f5; display: flex; flex-direction: column; gap: 10px; padding: 15px;">
-			{% if chat_messages %}
-				{% for msg in chat_messages|reverse %}
-				<div class="chat-msg {% if msg[1] == user_name %}msg-me{% else %}msg-other{% endif %}">
-					<span class="chat-author">{{ msg[1] }}</span>
-					<div class="chat-text">
-						{# Оставляем простую печать, а логику подсветки выносим в CSS/JS для единообразия #}
-						{{ msg[2] }}
-					</div>
-					
-					{% if msg[4] %}
-					<div class="chat-file-attachment mt-2 pt-1 border-top border-light-subtle">
-						<a href="/download_chat/{{ msg[4] }}" target="_blank" class="text-decoration-none small {% if msg[1] == user_name %}text-white-50{% endif %}">
-							<i class="fas fa-paperclip"></i> {{ msg[5] }}
-						</a>
-					</div>
-					{% endif %}
-					<span class="chat-time text-muted" style="font-size: 0.7rem; align-self: flex-end; margin-top: 4px;">
-						{{ msg[3] }}
-					</span>
-					
-				</div>
-				{% endfor %}
-			{% else %}
-				<div id="chat-empty" class="text-center text-muted mt-5 small">Здесь пока пусто...</div>
-			{% endif %}
-		</div>
-		<div class="card-footer bg-white border-top-0">
-			<form id="chat-form-js" enctype="multipart/form-data">
-				<div class="input-group">
-					<label class="btn btn-light border-0 m-0" for="chat-file" title="Прикрепить файл">
-						<i class="fas fa-paperclip"></i>
-						<input type="file" id="chat-file" style="display:none">
-					</label>
-					<input type="text" id="chat-input-js" class="form-control border-0 bg-light" placeholder="Напишите сообщение..." autocomplete="off">
-					<button class="btn btn-primary" type="submit" id="chat-send-btn">
-						<i class="fas fa-paper-plane"></i>
-					</button>
-				</div>
-				<div id="file-preview" class="small text-muted px-2 py-1" style="display:none; background: #f8f9fa; border-radius: 5px; margin-top: 5px;"></div>
-			</form>
-		</div>
-	</div>	
-		
-	<!-- Контейнер для выпадающего списка подсказок -->
-	<div id="mention-list" class="list-group shadow" style="display:none; position:absolute; z-index:1000; max-height:200px; overflow-y:auto;"></div>
-	<style>		
-	#mention-list { 
-        width: 200px; 
-        background-color: rgba(255, 255, 255, 0.7); /* Полупрозрачный белый */
-        backdrop-filter: blur(5px);                /* Эффект размытия заднего плана */
-        border: 1px solid rgba(0, 0, 0, 0.1);      /* Тонкая граница */
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    /* Элементы списка */
-    #mention-list .list-group-item { 
-        cursor: pointer; 
-        padding: 5px 10px; 
-        font-size: 0.85rem; 
-        background-color: transparent;             /* Прозрачный фон элементов */
-        color: #333; 
-        border: none;
-        transition: all 0.2s;
-    }
-
-    /* Цвет при наведении */
-    #mention-list .list-group-item:hover { 
-        background-color: rgba(0, 123, 255, 0.1);  /* Едва заметный синий фон */
-        color: #007bff;                            /* Синий текст */
-        font-weight: bold;
-    }
-	</style>
     <div class="page-container">
         <!-- Форма создания проекта -->
         <div class="card create-card">
@@ -253,249 +127,24 @@
                 </div>
             </div>
         </div>
-		<!-- Скрытая кнопка Смены пароля Сама кнопка-->
-		<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#passwordModal">
-			Сменить пароль
-		</button>
-		 <!-- Скрытая кнопка Смены пароля Окно к ней-->
-		<div class="modal fade" id="passwordModal" tabindex="-1" style="display: none;" aria-hidden="true">
-			<div class="modal-dialog modal-dialog-centered">
-				<div class="modal-content border-0 shadow">
-					<div class="modal-header bg-light">
-						<h5 class="modal-title" id="passwordModalLabel"><i class="fas fa-shield-alt me-2"></i>Безопасность аккаунта</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-					</div>
-					<form action="/change-password" method="post">
-						<div class="modal-body">
-							<p class="text-muted small">Введите старый и новый пароли для обновления доступа Я тут.</p>
-							
-							<div class="mb-3">
-								<label class="form-label small fw-bold">Старый пароль</label>
-								<input type="password" name="old_password" class="form-control" placeholder="••••••••" required>
-							</div>
-							
-							<div class="mb-3">
-								<label class="form-label small fw-bold">Новый пароль</label>
-								<input type="password" name="new_password" class="form-control" placeholder="Минимум 6 символов" required>
-							</div>
-						</div>
-						<div class="modal-footer bg-light">
-							<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Отмена</button>
-							<button type="submit" class="btn btn-primary btn-sm">Сохранить изменения</button>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
 
-	
         <!-- Футер -->
-        <footer class="footer">
-            <div class="footer-content">
-                <i class="fas fa-shield-alt"></i>
-                <span>&copy; 2026 Морозов & Бабенко & Волков (DOK). Все резолюции имеют силу приказа.</span>
-                <i class="fas fa-file-signature"></i>
-            </div>
-        </footer>
+    {% include 'partials/footer.html' %}
     </div>
+	
+<script src="{{ url_for('static', path='js/bootstrap.bundle.min.js') }}"></script>
 
+<!-- 2. Файл со всей логикой чата -->
+<script src="{{ url_for('static', path='js/chat.js') }}"></script>
 
-
+<!-- 3. Инициализация (запуск) -->
 <script>
-
-    // 1. Инициализация: берем максимальный ID из уже загруженных сообщений
-      // Самый надежный способ: берем ID самого свежего сообщения из списка
-    // Так как в Python стоит ORDER BY Id DESC, то первое сообщение в списке - самое новое.
-    let lastMsgId = parseInt("{{ chat_messages[0][0] if chat_messages else 0 }}") || 0;
-    
-    console.log("Система уведомлений запущена. ID последнего сообщения:", lastMsgId);
-
-    const chatWindow = document.getElementById('chat-window');
-    const chatForm = document.getElementById('chat-form-js');
-    const chatInput = document.getElementById('chat-input-js');
-    const chatFile = document.getElementById('chat-file');
-    const currentUser = "{{ user_name }}";
-    const allUsers = {{ user_list | tojson if user_list else [] }};
-    const mentionList = document.getElementById('mention-list');
-
-    // Скролл вниз при загрузке страницы
-    if (chatWindow) { chatWindow.scrollTop = chatWindow.scrollHeight; }
-
-    // --- УВЕДОМЛЕНИЯ ---
-    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-        Notification.requestPermission();
-    }
-
-    function showNotification(author, text) {
-        if (localStorage.getItem('notifications_enabled') !== 'false' && author !== currentUser) {
-            new Notification("Новое сообщение", {
-                body: `${author}: ${text}`,
-  
-            });
-        }
-    }
-
-    // --- ОТРИСОВКА СООБЩЕНИЙ ---
-    function appendMessage(msg) {
-		if (!chatWindow) return;
-		const emptyHint = document.getElementById('chat-empty');
-		if (emptyHint) emptyHint.remove();
-
-		const isMe = msg.author === currentUser;
-		
-		// БЛОК ОТРИСОВКИ ФАЙЛА
-		let fileHtml = "";
-		if (msg.file_id) {
-			fileHtml = `
-				<div class="chat-file-attachment mt-2 pt-1 border-top border-light-subtle" style="opacity: 0.9;">
-					<a href="/download_chat/${msg.file_id}" target="_blank" class="${isMe ? 'text-white' : 'text-primary'} text-decoration-none small">
-						<i class="fas fa-paperclip"></i> ${msg.file_name}
-					</a>
-				</div>
-			`;
-		}
-
-		const html = `
-			<div class="chat-msg ${isMe ? 'msg-me' : 'msg-other'}">
-				<span class="chat-author">${msg.author}</span>
-				<div class="chat-text">${msg.text}</div>
-				${fileHtml}
-				<span class="chat-time">${msg.time}</span>
-			</div>
-		`;
-		
-		chatWindow.insertAdjacentHTML('beforeend', html);
-		chatWindow.scrollTop = chatWindow.scrollHeight;
-	}
-
-    // --- ОТПРАВКА ФОРМЫ ---
-    chatForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append('message', chatInput.value);
-        if (chatFile.files[0]) formData.append('file', chatFile.files[0]);
-
-        const response = await fetch('/api/chat/send', { method: 'POST', body: formData });
-        if (response.ok) {
-            chatInput.value = '';
-            chatFile.value = '';
-            document.getElementById('file-preview').style.display = 'none';
-            await pollMessages();
-        }
-    };
-
-    // --- АВТООБНОВЛЕНИЕ ---
-    async function pollMessages() {
-        try {
-            const res = await fetch(`/api/chat/messages?last_id=${lastMsgId}`);
-            if (!res.ok) throw new Error("Ошибка сервера");
-            
-            const data = await res.json();
-            
-            if (data.messages && data.messages.length > 0) {
-                console.log("Получены новые сообщения:", data.messages); // Отладка в консоли F12
-
-                data.messages.forEach(m => {
-                    // Чтобы избежать дублей, обрабатываем только если ID реально выше
-                    if (m.id > lastMsgId) {
-                        
-                        // 1. ПУШ-УВЕДОМЛЕНИЕ (только для чужих сообщений)
-                        if (m.author !== currentUser) {
-                            showNotification(m.author, m.text);
-                        }
-                        
-                        // 2. ОТРИСОВКА (функция appendMessage должна уметь принимать msg.fcleanTextile_id)
-                        appendMessage(m);
-                        
-                        // 3. ОБНОВЛЕНИЕ СЧЕТЧИКА
-                        lastMsgId = m.id;
-                    }
-                });
-            }
-        } catch (err) { 
-            console.error("Ошибка обновления чата:", err); 
-        }
-    }
-
-    // Запуск цикла (каждые 3 секунды)
-    setInterval(pollMessages, 3000);
-
-    // --- ЛОГИКА Приложенных ФАЙЛОВ ---
-    chatFile.onchange = function() {
-        const preview = document.getElementById('file-preview');
-        if(this.files[0]) {
-            preview.innerText = "📎 " + this.files[0].name;
-            preview.style.display = 'block';
-        }
-    };
-	// --- ЛОГИКА УПОМИНАНИЙ ---
-	chatInput.addEventListener('input', function() {
-		const value = this.value;
-		const lastAtPos = value.lastIndexOf('@');
-		
-		// Проверяем, есть ли символ @ и идет ли он в конце слова
-		if (lastAtPos !== -1 && (lastAtPos === 0 || value[lastAtPos - 1] === ' ')) {
-			const query = value.substring(lastAtPos + 1).toLowerCase();
-			// Фильтруем список пользователей (allUsers подтягивается из Jinja2)
-			const matches = allUsers.filter(u => u.toLowerCase().startsWith(query));
-			
-			if (matches.length > 0) {
-				renderMentionList(matches, lastAtPos);
-			} else {
-				mentionList.style.display = 'none';
-			}
-		} else {
-			mentionList.style.display = 'none';
-		}
-	});
-
-	function renderMentionList(users, atPos) {
-		mentionList.innerHTML = '';
-		users.forEach(user => {
-			const item = document.createElement('div');
-			item.className = 'list-group-item';
-			item.textContent = user;
-			item.onclick = () => {
-				// Заменяем набранный текст на выбранное имя
-				const before = chatInput.value.substring(0, atPos);
-				const after = chatInput.value.substring(chatInput.selectionStart);
-				chatInput.value = before + '@' + user + ' ' + after;
-				mentionList.style.display = 'none';
-				chatInput.focus();
-			};
-			mentionList.appendChild(item);
-		});
-
-		// Позиционируем список над полем ввода
-		const rect = chatInput.getBoundingClientRect();
-		mentionList.style.left = rect.left + 'px';
-		mentionList.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
-		mentionList.style.display = 'block';
-	}
-
-	// Скрываем список при клике в любое другое место
-	document.addEventListener('click', (e) => {
-		if (!mentionList.contains(e.target) && e.target !== chatInput) {
-			mentionList.style.display = 'none';
-		}
-	});
-
-//--- Вот тут конец ---
-    function toggleNotifications(status) {
-        localStorage.setItem('notifications_enabled', status);
-    }
-	<!-- Обновление окна после смены пароля -->
-	window.onload = function() {
-		const urlParams = new URLSearchParams(window.location.search);
-		if (urlParams.has('success') && urlParams.get('success') === 'password_changed') {
-			alert("Пароль успешно обновлен!");
-		}
-		if (urlParams.has('error') && urlParams.get('error') === 'wrong_old_password') {
-			alert("Ошибка: Старый пароль введен неверно.");
-		}
-	}
+    initChat({
+        // Достаем ID первого сообщения из списка для начала отсчета новых
+        initialLastMsgId: parseInt("{{ chat_messages[0][0] if chat_messages else 0 }}") || 0,
+        userName: "{{ user_name }}",
+        userList: {{ user_list | tojson if user_list else [] }}
+    });
 </script>
-
-<script src="static/bootstrap.bundle.min.js"></script>
 </body>
 </html>

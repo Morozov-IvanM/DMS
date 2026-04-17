@@ -23,11 +23,11 @@
                     <i class="fas fa-arrow-left"></i> Назад к списку
                 </a>
                 {% if project and project[3] == 'Active' %}
-                <form action="/project/{{ project[0] }}/archive" method="post" class="inline-form" onsubmit="return confirm('Вы уверены, что хотите архивировать этот проект?');">
-                    <button type="submit" class="btn-archive">
-                        <i class="fas fa-archive"></i> В архив
-                    </button>
-                </form>
+                <form action="/archive-project/{{ project[0] }}/" method="post" style="display:inline;">
+					<button type="submit" class="btn-archive-link" title="Перенести в архив">
+						<i class="fas fa-archive"></i>
+					</button>
+				</form>
                 {% elif project and project[3] == 'Archived' %}
                 <form action="/project/{{ project[0] }}/restore" method="post" class="inline-form" onsubmit="return confirm('Восстановить проект и вернуть его в работу?');">
                     <button type="submit" class="btn-restore">

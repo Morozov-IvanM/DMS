@@ -33,25 +33,15 @@
 		</div>
 		<div class="card-footer bg-white border-top-0">
 			<form id="chat-form-js" enctype="multipart/form-data">
-				<div class="input-group" style="gap: 5px;">
-					<!-- Кнопка выбора файла -->
-					<label class="btn btn-white border shadow-sm m-0 d-flex align-items-center justify-content-center" 
-						   for="chat-file" 
-						   style="background: white; cursor: pointer; border-radius: 8px; min-width: 160px;">
+				<div class="input-group">
+					<label class="btn btn-light border-0 m-0 d-flex align-items-center" for="chat-file" title="Прикрепить файл">
+						<i class="fas fa-paperclip me-2"></i> 
 						<span class="small fw-bold text-primary">Приложить документ</span>
 						<input type="file" id="chat-file" style="display:none">
 					</label>
-
-					<!-- Поле ввода текста -->
-					<input type="text" id="chat-input-js" 
-						   class="form-control border bg-light" 
-						   placeholder="Напишите сообщение..." 
-						   autocomplete="off" 
-						   style="border-radius: 8px !important;">
-
-					<!-- Кнопка отправки текста -->
-					<button class="btn btn-primary fw-bold" type="submit" id="chat-send-btn" style="border-radius: 8px !important; min-width: 100px;">
-						Отправить
+					<input type="text" id="chat-input-js" class="form-control border-0 bg-light" placeholder="Напишите сообщение..." autocomplete="off">
+					<button class="btn btn-primary" type="submit" id="chat-send-btn">
+						<i class="fas fa-paper-plane"></i>
 					</button>
 				</div>
 				<div id="file-preview" class="small text-muted px-2 py-1" style="display:none; background: #f8f9fa; border-radius: 5px; margin-top: 5px;"></div>

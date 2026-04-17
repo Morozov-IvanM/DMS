@@ -129,6 +129,30 @@ async def change_password(
 
     return RedirectResponse(url="/?success=password_changed", status_code=303)
 
+@app.post("/admin/reset-user-password")
+async def admin_reset_password(
+    user_email: str = Form(...),
+    new_password: str = Form(...),
+    admin_password: str = Form(...), # Твой пароль для подтверждения
+    user_name: str = Cookie(None)
+):
+    if not user_name or unquote(user_name) != "Администратор":
+        return RedirectResponse(url="/?error=no_admin_rights", status_code=303)
+
+    # 1. Сначала проверяем твой пароль (админа)
+    admin_row = db.run('SELECT "HashedPassword" FROM public."Users" WHERE "Username" = :u', u="Администратор")
+    if not admin_row or not verify_password(admin_password, admin_row[0][0]):
+        return RedirectResponse(url="/?error=wrong_admin_password", status_code=303)
+
+    # 2. Если всё ок — меняем пароль пользователю по Email
+    new_hashed = hash_password(new_password)
+    db.run('''
+        UPDATE public."Users" 
+        SET "HashedPassword" = :p 
+        WHERE "Email" = :e
+    ''', p=new_hashed, e=user_email.strip().lower())
+
+    return RedirectResponse(url="/?success=admin_reset_done", status_code=303)
 
 # --- ГЛАВНАЯ СТРАНИЦА ---
 @app.get("/", response_class=HTMLResponse)

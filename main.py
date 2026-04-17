@@ -70,7 +70,7 @@ async def login(response: Response, login_field: str = Form(...), password: str 
         FROM public."Users" 
         WHERE "Username" = :l OR "Email" = :l 
         LIMIT 1
-    ''', l=login_field)
+    ''', e=login_field.strip().lower()) # Приводим к нижнему регистру для надежности
 
     if not user_row:
         return RedirectResponse(url="/login?error=UserNotFound", status_code=303)
@@ -88,8 +88,8 @@ async def login(response: Response, login_field: str = Form(...), password: str 
 
 @app.get("/logout")
 async def logout():
-    response = RedirectResponse(url="/")
-    response.delete_cookie("user_name")
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie("user_name") # Удаляем куку
     return response
 
 
@@ -271,4 +271,4 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
-    # try comment
+    # try commen

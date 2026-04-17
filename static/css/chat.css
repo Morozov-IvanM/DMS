@@ -1,0 +1,8 @@
+/* static/css/chat.css */
+.chat-box { display: flex; flex-direction: column; gap: 10px; padding: 15px; background: #f0f2f5; }
+.chat-msg { max-width: 80%; padding: 8px 12px; border-radius: 15px; font-size: 0.9rem; position: relative; margin-bottom: 5px; }
+.msg-other { align-self: flex-start; background-color: #ffffff !important; border: 1px solid #dee2e6; color: #333; }
+.msg-me { align-self: flex-end; background-color: #007bff !important; color: white !important; }
+.chat-author { font-weight: bold; font-size: 0.75rem; display: block; margin-bottom: 2px; }
+.chat-time { font-size: 0.65rem; opacity: 0.7; display: block; text-align: right; margin-top: 4px; }
+.mention-me { background: #ffc107; color: #212529; padding: 2px 4px; border-radius: 4px; font-weight: bold; }

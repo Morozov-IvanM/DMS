@@ -1,0 +1,18 @@
+<!-- templates/partials/scripts.html -->
+
+<!-- 1. Библиотека Bootstrap -->
+<script src="{{ url_for('static', path='js/bootstrap.bundle.min.js') }}"></script>
+
+<!-- 2. Файл с логикой чата -->
+<script src="{{ url_for('static', path='js/chat.js') }}"></script>
+
+<!-- 3. Инициализация (если на странице есть чат) -->
+{% if chat_messages is defined %}
+<script>
+    initChat({
+        initialLastMsgId: parseInt("{{ chat_messages[0][0] if chat_messages else 0 }}") || 0,
+        userName: "{{ user_name }}",
+        userList: {{ user_list | tojson if user_list else [] }}
+    });
+</script>
+{% endif %}

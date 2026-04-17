@@ -282,15 +282,41 @@ async def edit_comment(c_id: int, p_id: int = Form(...), text: str = Form(...), 
     return RedirectResponse(url=f"/project/{p_id}", status_code=303)
 
 
-# --- ВСПОМОГАТЕЛЬНЫЕ РОУТЫ ---
 @app.get("/archive", response_class=HTMLResponse)
 async def archive_index(request: Request, user_name: str = Cookie(None), q: str = ""):
-    if not user_name: return RedirectResponse(url="/")
-    query = 'SELECT "Id", "Name", "Description", "CreatedAt" FROM public."Projects" WHERE "Status" = \'Archived\' ORDER BY "Id" DESC'
-    projects = db.run(query)
-    return templates.TemplateResponse("archive.html",
-                                      {"request": request, "projects": projects, "user_name": unquote(user_name),
-                                       "search_query": q})
+    if not user_name:
+        return RedirectResponse(url="/login", status_code=303)
+
+    # 1. Логика поиска: добавляем фильтрацию, если q не пустой
+    if q:
+        query = '''
+            SELECT "Id", "Name", "Description", "CreatedAt" 
+            FROM public."Projects" 
+            WHERE "Status" = 'Archived' AND "Name" ILIKE :q 
+            ORDER BY "Id" DESC
+        '''
+        projects_raw = db.run(query, q=f"%{q}%")
+    else:
+        query = '''
+            SELECT "Id", "Name", "Description", "CreatedAt" 
+            FROM public."Projects" 
+            WHERE "Status" = 'Archived' 
+            ORDER BY "Id" DESC
+        '''
+        projects_raw = db.run(query)
+
+    # 2. Форматируем дату для каждого проекта через нашу функцию format_time
+    projects = [
+        (p[0], p[1], p[2], format_time(p[3]))
+        for p in projects_raw
+    ]
+
+    return templates.TemplateResponse("archive.html", {
+        "request": request,
+        "projects": projects,
+        "user_name": unquote(user_name),
+        "search_query": q
+    })
 
 @app.get("/download/{attach_id}")
 async def download_file(attach_id: int):

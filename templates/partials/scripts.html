@@ -16,3 +16,22 @@
     });
 </script>
 {% endif %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnOpen = document.getElementById('toggleProjectForm');
+    const btnClose = document.getElementById('closeProjectForm');
+    const container = document.getElementById('projectFormContainer');
+
+    // Открыть форму
+    btnOpen.onclick = function() {
+        container.style.display = 'block';
+        btnOpen.parentElement.style.display = 'none'; // Скрываем саму кнопку "Создать"
+    };
+
+    // Закрыть форму (отмена)
+    btnClose.onclick = function() {
+        container.style.display = 'none';
+        btnOpen.parentElement.style.display = 'block'; // Возвращаем кнопку
+    };
+});
+</script>

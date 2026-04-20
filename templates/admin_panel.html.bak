@@ -97,10 +97,10 @@
                                 <td>{{ user[0] }}</td>
                                 <td>{{ user[1] }}</td>
                                 <td>
-                                    <button class="btn btn-link btn-sm text-decoration-none" 
-                                            onclick="document.getElementsByName('user_email')[0].value='{{ user[1] }}'">
-                                        Выбрать для сброса
-                                    </button>
+                                    <button type="button" class="btn btn-link btn-sm text-decoration-none" 
+										onclick="document.getElementsByName('user_email')[0].value='{{ user[1] }}'; window.scrollTo(0, 0);">
+									Выбрать для сброса
+								</button>
                                 </td>
                             </tr>
                             {% endfor %}

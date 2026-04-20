@@ -57,27 +57,21 @@
                 <div class="card-header bg-white fw-bold">
                     <i class="fas fa-key text-danger me-2"></i> Изменение пароля сотрудника
                 </div>
-                <div class="card-body">
-                    <form action="/admin/reset-user-password" method="post">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Email пользователя</label>
-                                <input type="email" name="user_email" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Новый пароль</label>
-                                <input type="password" name="new_password" class="form-control" minlength="6" required>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-danger">Подтвердите ВАШ пароль администратора</label>
-                                <input type="password" name="admin_password" class="form-control" required>
-                            </div>
-                            <div class="col-12 mt-4">
-                                <button type="submit" class="btn btn-danger w-100">Применить изменения</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+				<form action="/admin/reset-user-password" method="post">
+					<div class="row g-3">
+						<div class="col-md-5">
+							<label class="form-label small fw-bold">Email пользователя</label>
+							<input type="email" name="user_email" class="form-control" required>
+						</div>
+						<div class="col-md-5">
+							<label class="form-label small fw-bold">Новый пароль</label>
+							<input type="password" name="new_password" class="form-control" minlength="6" required>
+						</div>
+						<div class="col-md-2 d-flex align-items-end">
+							<button type="submit" class="btn btn-danger w-100">Сбросить</button>
+						</div>
+					</div>
+				</form>
             </div>
             
             <!-- Таблица пользователей (информативно) -->

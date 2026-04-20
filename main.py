@@ -131,46 +131,63 @@ async def change_password(
 
     return RedirectResponse(url="/?success=password_changed", status_code=303)
 
-# Отдельная страница админки
-@app.get("/admin/panel", response_class=HTMLResponse)
+
+# 1. Страница подтверждения входа (простая форма с паролем)
+@app.get("/admin/auth", response_class=HTMLResponse)
+async def admin_auth_page(request: Request):
+    return templates.TemplateResponse("admin_login.html", {"request": request})
+
+
+# 2. Сама панель
+
+@app.api_route("/admin/panel", methods=["GET", "POST"])  # Разрешаем оба метода
 async def admin_panel_page(request: Request, user_name: str = Cookie(None)):
-    # Жесткая проверка прав
+    # 1. Базовая проверка прав (куки)
     if not user_name or unquote(user_name) != "Администратор":
         return RedirectResponse(url="/?error=no_admin_rights", status_code=303)
 
-    # Сюда можно подтянуть данные из БД, например, список всех пользователей
+    # 2. Если это вход (POST), проверяем пароль
+    if request.method == "POST":
+        form_data = await request.form()
+        admin_password = form_data.get("admin_password")
+
+        admin_row = db.run('SELECT "HashedPassword" FROM public."Users" WHERE "Username" = :u', u="Администратор")
+        if not admin_row or not verify_password(admin_password, admin_row[0][0]):
+            return RedirectResponse(url="/?error=wrong_admin_password", status_code=303)
+
+        # Здесь можно поставить админу временную куку-сессию, чтобы GET пускал его дальше
+        # Но для простоты сейчас просто пропустим к рендеру
+
+    # 3. Получаем список пользователей для таблицы
     users = db.run('SELECT "Username", "Email" FROM public."Users" ORDER BY "Username"')
 
     return templates.TemplateResponse("admin_panel.html", {
         "request": request,
-        "user_name": user_name,
+        "user_name": unquote(user_name),
         "users": users
     })
 
-
-# Смена пароля пользователя
 @app.post("/admin/reset-user-password")
 async def admin_reset_password(
-    user_email: str = Form(...),
-    new_password: str = Form(...),
-    admin_password: str = Form(...), # Твой пароль для подтверждения
-    user_name: str = Cookie(None)
+        user_email: str = Form(...),
+        new_password: str = Form(...),
+        user_name: str = Cookie(None)
 ):
+    # Проверка прав доступа (по куки)
     if not user_name or unquote(user_name) != "Администратор":
-        return RedirectResponse(url="/?error=no_admin_rights", status_code=303)
+        return RedirectResponse(url="/?error=access_denied", status_code=303)
 
-    # 1. Сначала проверяем твой пароль (админа)
-    admin_row = db.run('SELECT "HashedPassword" FROM public."Users" WHERE "Username" = :u', u="Администратор")
-    if not admin_row or not verify_password(admin_password, admin_row[0][0]):
-        return RedirectResponse(url="/admin/panel?error=wrong_admin_password", status_code=303)
+    email_clean = user_email.strip().lower()
 
-    # 2. Если всё ок — меняем пароль пользователю по Email
+    # 1. Проверяем наличие пользователя
+    user_check = db.run('SELECT "Email" FROM public."Users" WHERE "Email" = :e', e=email_clean)
+    if not user_check:
+        return RedirectResponse(url="/admin/panel?error=user_not_found", status_code=303)
+
+    # 2. Смена пароля без дополнительного подтверждения
     new_hashed = hash_password(new_password)
-    db.run('''
-        UPDATE public."Users"
-        SET "HashedPassword" = :p
-        WHERE "Email" = :e
-    ''', p=new_hashed, e=user_email.strip().lower())
+    db.run('UPDATE public."Users" SET "HashedPassword" = :p WHERE "Email" = :e',
+           p=new_hashed, e=email_clean)
 
     return RedirectResponse(url="/admin/panel?success=admin_reset_done", status_code=303)
 

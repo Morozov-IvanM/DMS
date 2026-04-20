@@ -18,20 +18,26 @@
 {% endif %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const btnOpen = document.getElementById('toggleProjectForm');
-    const btnClose = document.getElementById('closeProjectForm');
-    const container = document.getElementById('projectFormContainer');
+    const trigger = document.getElementById('triggerContainer');
+    const formContainer = document.getElementById('projectFormContainer');
+    
+    const showBtn = document.getElementById('showFormBtn');
+    const hideBtn = document.getElementById('closeFormBtn');
+    const hideCross = document.getElementById('closeFormCross');
 
-    // Открыть форму
-    btnOpen.onclick = function() {
-        container.style.display = 'block';
-        btnOpen.parentElement.style.display = 'none'; // Скрываем саму кнопку "Создать"
+    // Функция показать
+    showBtn.onclick = () => {
+        formContainer.style.display = 'block';
+        trigger.style.display = 'none';
     };
 
-    // Закрыть форму (отмена)
-    btnClose.onclick = function() {
-        container.style.display = 'none';
-        btnOpen.parentElement.style.display = 'block'; // Возвращаем кнопку
+    // Функция скрыть
+    const hideForm = () => {
+        formContainer.style.display = 'none';
+        trigger.style.display = 'block';
     };
+
+    hideBtn.onclick = hideForm;
+    hideCross.onclick = hideForm;
 });
 </script>

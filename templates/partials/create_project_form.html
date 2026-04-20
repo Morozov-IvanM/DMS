@@ -1,38 +1,40 @@
-<!-- Кнопка-триггер (всегда видна) -->
-<div class="container mb-3 text-start">
-    <button type="button" class="btn btn-success shadow-sm" id="toggleProjectForm">
+<!-- Кнопка-триггер (видна изначально) -->
+<div id="triggerContainer" class="container mb-3 text-start">
+    <button type="button" class="btn btn-success shadow-sm" id="showFormBtn">
         <i class="fas fa-plus-circle me-1"></i> Создать проект
     </button>
 </div>
 
 <!-- Контейнер формы (скрыт по умолчанию) -->
-<div id="projectFormContainer" style="display: none;">
+<div id="projectFormContainer" class="container" style="display: none;">
     <div class="card create-card mb-4 shadow-sm border-0">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <span><i class="fas fa-rocket me-2"></i> Новый проект</span>
-            <button type="button" class="btn-close btn-close-white" id="closeProjectForm"></button>
+            <!-- Крестик для закрытия в шапке -->
+            <button type="button" class="btn-close btn-close-white" id="closeFormCross" aria-label="Закрыть"></button>
         </div>
         <div class="card-body">
             <form action="/create_project" method="post">
                 <div class="form-row d-flex gap-3 align-items-end">
                     <div class="form-group flex-grow-1">
-                        <label for="project-name" class="small fw-bold">Название проекта</label>
+                        <label class="small fw-bold text-muted">Название проекта</label>
                         <div class="input-wrapper mt-1">
                             <i class="fas fa-tag input-icon"></i>
-                            <input type="text" id="project-name" name="name" class="form-control" placeholder="Например: Внедрение CRM" required>
+                            <input type="text" name="name" class="form-control" placeholder="Название..." required>
                         </div>
                     </div>
                     <div class="form-group flex-grow-2">
-                        <label for="project-desc" class="small fw-bold">Краткое описание</label>
+                        <label class="small fw-bold text-muted">Описание</label>
                         <div class="input-wrapper mt-1">
                             <i class="fas fa-align-left input-icon"></i>
-                            <input type="text" id="project-desc" name="description" class="form-control" placeholder="Что нужно сделать?">
+                            <input type="text" name="description" class="form-control" placeholder="Краткая суть...">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary px-4">
-                            Создать
-                        </button>
+                    <div class="form-group d-flex gap-2">
+                        <!-- Основная кнопка -->
+                        <button type="submit" class="btn btn-primary">Создать</button>
+                        <!-- Кнопка отмены -->
+                        <button type="button" class="btn btn-light border" id="closeFormBtn">Отмена</button>
                     </div>
                 </div>
             </form>

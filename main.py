@@ -8,6 +8,8 @@ from fastapi.staticfiles import StaticFiles
 from urllib.parse import quote, unquote
 from passlib.context import CryptContext
 
+
+
 # Импортируем наши новые модули
 from database import db
 from utils import get_safe_name, format_time, write_to_history
@@ -142,17 +144,34 @@ async def admin_reset_password(
     # 1. Сначала проверяем твой пароль (админа)
     admin_row = db.run('SELECT "HashedPassword" FROM public."Users" WHERE "Username" = :u', u="Администратор")
     if not admin_row or not verify_password(admin_password, admin_row[0][0]):
-        return RedirectResponse(url="/?error=wrong_admin_password", status_code=303)
+        return RedirectResponse(url="/admin/panel?error=wrong_admin_password", status_code=303)
 
     # 2. Если всё ок — меняем пароль пользователю по Email
     new_hashed = hash_password(new_password)
     db.run('''
-        UPDATE public."Users" 
-        SET "HashedPassword" = :p 
+        UPDATE public."Users"
+        SET "HashedPassword" = :p
         WHERE "Email" = :e
     ''', p=new_hashed, e=user_email.strip().lower())
 
-    return RedirectResponse(url="/?success=admin_reset_done", status_code=303)
+    return RedirectResponse(url="/admin/panel?success=admin_reset_done", status_code=303)
+
+# Отдельная страница админки
+@app.get("/admin/panel", response_class=HTMLResponse)
+async def admin_panel_page(request: Request, user_name: str = Cookie(None)):
+    # Жесткая проверка прав
+    if not user_name or unquote(user_name) != "Администратор":
+        return RedirectResponse(url="/?error=no_admin_rights", status_code=303)
+
+    # Сюда можно подтянуть данные из БД, например, список всех пользователей
+    users = db.run('SELECT "Username", "Email" FROM public."Users" ORDER BY "Username"')
+
+    return templates.TemplateResponse("admin_panel.html", {
+        "request": request,
+        "user_name": user_name,
+        "users": users
+    })
+
 
 # --- ГЛАВНАЯ СТРАНИЦА ---
 @app.get("/", response_class=HTMLResponse)

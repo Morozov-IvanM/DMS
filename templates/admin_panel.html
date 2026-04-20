@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель управления DOK</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/corporate_reddit.css') }}">
+    <
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="/"><i class="fas fa-shield-alt me-2"></i>Безопасный регион | Админ-центр</a>
+        <a href="/" class="btn btn-outline-light btn-sm">На главную</a>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Боковое меню (для будущего функционала) -->
+        <div class="col-md-3">
+            <div class="list-group shadow-sm">
+                <a href="#" class="list-group-item list-group-item-action active"><i class="fas fa-users-cog me-2"></i> Сброс паролей</a>
+                <a href="#" class="list-group-item list-group-item-action disabled"><i class="fas fa-list-ul me-2"></i> Логи системы (скоро)</a>
+                <a href="#" class="list-group-item list-group-item-action disabled"><i class="fas fa-user-plus me-2"></i> Создать юзера</a>
+            </div>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="col-md-9">
+		<!-- Сообщения об успехе или ошибке -->
+		{% if request.query_params.get('success') == 'admin_reset_done' %}
+		<div class="alert alert-success border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+			<i class="fas fa-check-circle me-2"></i>
+			<div>Пароль успешно обновлен!</div>
+			<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+		</div>
+		{% endif %}
+
+		{% if request.query_params.get('error') == 'user_not_found' %}
+		<div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+			<i class="fas fa-user-slash me-2"></i>
+			<div>Пользователь с таким Email не найден в базе.</div>
+			<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+		</div>
+		{% endif %}
+
+		{% if request.query_params.get('error') == 'wrong_admin_password' %}
+		<div class="alert alert-danger border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+			<i class="fas fa-exclamation-triangle me-2"></i>
+			<div>Ошибка: Неверный пароль администратора. Доступ отклонен.</div>
+			<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+		</div>
+		{% endif %}
+            <!-- Блок сброса пароля -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold">
+                    <i class="fas fa-key text-danger me-2"></i> Изменение пароля сотрудника
+                </div>
+                <div class="card-body">
+                    <form action="/admin/reset-user-password" method="post">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Email пользователя</label>
+                                <input type="email" name="user_email" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Новый пароль</label>
+                                <input type="password" name="new_password" class="form-control" minlength="6" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-danger">Подтвердите ВАШ пароль администратора</label>
+                                <input type="password" name="admin_password" class="form-control" required>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-danger w-100">Применить изменения</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Таблица пользователей (информативно) -->
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-white fw-bold">Зарегистрированные сотрудники</div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small">
+                            <tr>
+                                <th>Имя</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user[0] }}</td>
+                                <td>{{ user[1] }}</td>
+                                <td>
+                                    <button class="btn btn-link btn-sm text-decoration-none" 
+                                            onclick="document.getElementsByName('user_email')[0].value='{{ user[1] }}'">
+                                        Выбрать для сброса
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

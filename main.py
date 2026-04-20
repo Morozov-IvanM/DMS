@@ -131,6 +131,24 @@ async def change_password(
 
     return RedirectResponse(url="/?success=password_changed", status_code=303)
 
+# Отдельная страница админки
+@app.get("/admin/panel", response_class=HTMLResponse)
+async def admin_panel_page(request: Request, user_name: str = Cookie(None)):
+    # Жесткая проверка прав
+    if not user_name or unquote(user_name) != "Администратор":
+        return RedirectResponse(url="/?error=no_admin_rights", status_code=303)
+
+    # Сюда можно подтянуть данные из БД, например, список всех пользователей
+    users = db.run('SELECT "Username", "Email" FROM public."Users" ORDER BY "Username"')
+
+    return templates.TemplateResponse("admin_panel.html", {
+        "request": request,
+        "user_name": user_name,
+        "users": users
+    })
+
+
+# Смена пароля пользователя
 @app.post("/admin/reset-user-password")
 async def admin_reset_password(
     user_email: str = Form(...),
@@ -155,23 +173,6 @@ async def admin_reset_password(
     ''', p=new_hashed, e=user_email.strip().lower())
 
     return RedirectResponse(url="/admin/panel?success=admin_reset_done", status_code=303)
-
-# Отдельная страница админки
-@app.get("/admin/panel", response_class=HTMLResponse)
-async def admin_panel_page(request: Request, user_name: str = Cookie(None)):
-    # Жесткая проверка прав
-    if not user_name or unquote(user_name) != "Администратор":
-        return RedirectResponse(url="/?error=no_admin_rights", status_code=303)
-
-    # Сюда можно подтянуть данные из БД, например, список всех пользователей
-    users = db.run('SELECT "Username", "Email" FROM public."Users" ORDER BY "Username"')
-
-    return templates.TemplateResponse("admin_panel.html", {
-        "request": request,
-        "user_name": user_name,
-        "users": users
-    })
-
 
 # --- ГЛАВНАЯ СТРАНИЦА ---
 @app.get("/", response_class=HTMLResponse)

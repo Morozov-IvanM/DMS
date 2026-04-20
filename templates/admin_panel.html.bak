@@ -28,6 +28,30 @@
 
         <!-- Основной контент -->
         <div class="col-md-9">
+		<!-- Сообщения об успехе или ошибке -->
+		{% if request.query_params.get('success') == 'admin_reset_done' %}
+		<div class="alert alert-success border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+			<i class="fas fa-check-circle me-2"></i>
+			<div>Пароль успешно обновлен!</div>
+			<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+		</div>
+		{% endif %}
+
+		{% if request.query_params.get('error') == 'user_not_found' %}
+		<div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+			<i class="fas fa-user-slash me-2"></i>
+			<div>Пользователь с таким Email не найден в базе.</div>
+			<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+		</div>
+		{% endif %}
+
+		{% if request.query_params.get('error') == 'wrong_admin_password' %}
+		<div class="alert alert-danger border-0 shadow-sm d-flex align-items-center mb-4" role="alert">
+			<i class="fas fa-exclamation-triangle me-2"></i>
+			<div>Ошибка: Неверный пароль администратора. Доступ отклонен.</div>
+			<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+		</div>
+		{% endif %}
             <!-- Блок сброса пароля -->
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white fw-bold">

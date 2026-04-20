@@ -33,19 +33,7 @@
     {% include 'partials/footer.html' %}
     </div>
 	
-<script src="{{ url_for('static', path='js/bootstrap.bundle.min.js') }}"></script>
-
-<!-- 2. Файл со всей логикой чата -->
-<script src="{{ url_for('static', path='js/chat.js') }}"></script>
-
-<!-- 3. Инициализация (запуск) -->
-<script>
-    initChat({
-        // Достаем ID первого сообщения из списка для начала отсчета новых
-        initialLastMsgId: parseInt("{{ chat_messages[0][0] if chat_messages else 0 }}") || 0,
-        userName: "{{ user_name }}",
-        userList: {{ user_list | tojson if user_list else [] }}
-    });
-</script>
+ <!-- 5. Общие скрипты -->
+    {% include 'partials/scripts.html' %}
 </body>
 </html>

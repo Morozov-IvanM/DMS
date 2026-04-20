@@ -46,7 +46,7 @@
                                 </div>
                                 <h4 class="project-card-title">{{ p[1] }}</h4>
                                 <p class="project-card-description">
-                                    {{ p[2][:120] if p[2] else 'Описание отсутствует' }}...
+                                    {{ p[2][:120] if p[2] else 'Описание отсутствует' }}
                                 </p>
                                 <div class="project-card-footer text-muted small">
                                     <i class="fas fa-calendar-alt"></i> {{ p[3] if p[3] else 'Нет даты' }}

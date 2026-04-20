@@ -68,7 +68,7 @@ async def login_page(request: Request, error: str = None, success: str = None):
 @app.post("/login")
 async def login(response: Response, login_field: str = Form(...), password: str = Form(...)):
     user_row = db.run('''
-        SELECT "Username", "HashedPassword" 
+        SELECT "Username", "HashedPassword", "GroupId"
         FROM public."Users" 
         WHERE "Email" = :e
         LIMIT 1
@@ -79,6 +79,7 @@ async def login(response: Response, login_field: str = Form(...), password: str 
 
     db_username = user_row[0][0]
     hashed_pass = user_row[0][1]
+    db_group_id = user_row[0][2]  # Получаем ID группы из БД
 
     if not verify_password(password, hashed_pass):
         return RedirectResponse(url="/login?error=WrongPassword", status_code=303)
@@ -86,6 +87,7 @@ async def login(response: Response, login_field: str = Form(...), password: str 
     # Успешный вход
     response = RedirectResponse(url="/", status_code=303)
     response.set_cookie(key="user_name", value=quote(db_username), httponly=True)
+    response.set_cookie(key="group_id", value=str(db_group_id), httponly=True)
     return response
 
 @app.get("/logout")
@@ -160,11 +162,11 @@ async def admin_panel_page(request: Request, user_name: str = Cookie(None)):
 
     # 3. Получаем список пользователей для таблицы
     users = db.run('SELECT "Username", "Email" FROM public."Users" ORDER BY "Username"')
-
+    all_groups = db.run('SELECT "Id", "Name" FROM public."Groups" ORDER BY "Id"')
     return templates.TemplateResponse("admin_panel.html", {
         "request": request,
-        "user_name": unquote(user_name),
-        "users": users
+        "users": users,
+        "all_groups": all_groups
     })
 
 @app.post("/admin/reset-user-password")
@@ -191,70 +193,130 @@ async def admin_reset_password(
 
     return RedirectResponse(url="/admin/panel?success=admin_reset_done", status_code=303)
 
+@app.post("/admin/change-user-group")
+async def admin_change_user_group(
+    target_email: str = Form(...),
+    new_group_id: int = Form(...),
+    user_name: str = Cookie(None)
+):
+    # 1. Проверка прав админа
+    if not user_name or unquote(user_name) != "Администратор":
+        return RedirectResponse(url="/?error=no_admin_rights", status_code=303)
+    email_clean = target_email.strip().lower()
+    # 2. ПРОВЕРКА: Существует ли такой пользователь?
+    user_check = db.run('SELECT "Username" FROM public."Users" WHERE "Email" = :e', e=email_clean)
+
+    if not user_check:
+        # Если пользователя нет, возвращаем ошибку в URL
+        return RedirectResponse(url="/admin/panel?error=user_not_found", status_code=303)
+    # 2. Обновляем группу в базе
+    db.run('''
+        UPDATE public."Users" 
+        SET "GroupId" = :g 
+        WHERE "Email" = :e
+    ''', g=new_group_id, e=target_email.strip().lower())
+
+    return RedirectResponse(url="/admin/panel?success=group_changed", status_code=303)
+
 # --- ГЛАВНАЯ СТРАНИЦА ---
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request, user_name: str = Cookie(None), q: str = ""):
+async def index(request: Request, user_name: str = Cookie(None), group_id: str = Cookie(None), q: str = ""):
     if not user_name:
         return templates.TemplateResponse("login.html", {"request": request})
 
     decoded_name = unquote(user_name)
 
-    # 1. Поиск или список проектов
-    if q:
-        projects = db.run(
-            'SELECT "Id", "Name", "Description" FROM public."Projects" WHERE "Status" = \'Active\' AND "Name" ILIKE :s ORDER BY "Id" DESC',
-            s=f"%{q}%")
-    else:
-        projects = db.run(
-            'SELECT "Id", "Name", "Description" FROM public."Projects" WHERE "Status" = \'Active\' ORDER BY "Id" DESC')
+    # 1. Синхронизация группы: берем актуальный GroupId из базы данных
+    user_data = db.run('SELECT "GroupId" FROM public."Users" WHERE "Username" = :u', u=decoded_name)
 
-    # 2. Последние комментарии
+    # Определяем правильный ID группы (приоритет базе, если нет — куке, если нет — 1)
+    if user_data and user_data[0][0]:
+        actual_g_id = int(user_data[0][0])
+    else:
+        try:
+            actual_g_id = int(group_id) if group_id and group_id != "None" else 1
+        except:
+            actual_g_id = 1
+
+    # 2. Проверяем, нужно ли обновить куку в браузере (если в БД группа уже другая)
+    needs_cookie_update = str(group_id) != str(actual_g_id)
+    g_id = actual_g_id
+
+    # 3. Получаем название группы
+    group_row = db.run('SELECT "Name" FROM public."Groups" WHERE "Id" = :g', g=g_id)
+    group_name = group_row[0][0] if group_row else f"Группа {g_id}"
+
+    # 4. Поиск или список проектов
+    if q:
+        projects = db.run('''
+                SELECT "Id", "Name", "Description" FROM public."Projects" 
+                WHERE "Status" = 'Active' AND "GroupId" = :g AND "Name" ILIKE :s 
+                ORDER BY "Id" DESC''', g=g_id, s=f"%{q}%")
+    else:
+        projects = db.run('''
+                SELECT "Id", "Name", "Description" FROM public."Projects" 
+                WHERE "Status" = 'Active' AND "GroupId" = :g 
+                ORDER BY "Id" DESC''', g=g_id)
+
+    # 5. Последние комментарии в этой группе
     last_comments = db.run('''
         SELECT c."Text", c."AuthorName", p."Name", c."ProjectId" 
         FROM public."Comments" c
         JOIN public."Projects" p ON c."ProjectId" = p."Id"
+        WHERE p."GroupId" = :g
         ORDER BY c."CreatedAt" DESC LIMIT 5
-    ''')
+    ''', g=g_id)
 
-    # 3. Чат (Добавляем форматирование времени)
+    # 6. Чат группы
     raw_chat_messages = db.run('''
-            SELECT c."Id", c."AuthorName", c."Message", c."CreatedAt", a."Id", a."FileName"
-            FROM public."GlobalChat" c
-            LEFT JOIN public."ChatAttachments" a ON c."Id" = a."MessageId"
-            ORDER BY c."Id" DESC LIMIT 50
-        ''')
+                SELECT c."Id", c."AuthorName", c."Message", c."CreatedAt", a."Id", a."FileName"
+                FROM public."GlobalChat" c
+                LEFT JOIN public."ChatAttachments" a ON c."Id" = a."MessageId"
+                WHERE c."GroupId" = :g
+                ORDER BY c."Id" DESC LIMIT 50
+            ''', g=g_id)
 
-    # Пересобираем список, заменяя r[3] (CreatedAt) на отформатированную строку
-    chat_messages = [
-        (r[0], r[1], r[2], format_time(r[3]), r[4], r[5])
-        for r in raw_chat_messages
-    ]
+    chat_messages = [(r[0], r[1], r[2], format_time(r[3]), r[4], r[5]) for r in raw_chat_messages]
 
-    # 4. Список пользователей
-    user_list = [row[0] for row in db.run(
-        'SELECT DISTINCT "AuthorName" FROM public."GlobalChat" UNION SELECT DISTINCT "AuthorName" FROM public."Comments"')]
+    # 7. Список пользователей этой группы (для подсказок)
+    user_list = [row[0] for row in db.run('''
+            SELECT "Username" FROM public."Users" WHERE "GroupId" = :g''', g=g_id)]
 
-    return templates.TemplateResponse("index.html", {
+    # 8. Формируем ответ
+    response = templates.TemplateResponse("index.html", {
         "request": request,
         "projects": projects,
         "user_name": decoded_name,
+        "group_name": group_name,
         "search_query": q,
         "last_comments": last_comments,
-        "chat_messages": chat_messages,  # Теперь здесь время уже "ЧЧ:ММ"
+        "chat_messages": chat_messages,
         "user_list": user_list
     })
 
+    # Если группа в базе сменилась, принудительно обновляем куку пользователю
+    if needs_cookie_update:
+        response.set_cookie(key="group_id", value=str(g_id), httponly=True)
+
+    return response
 # --- API ЖИВОГО ЧАТА ---
 @app.post("/api/chat/send")
-async def api_send_message(message: str = Form(...), file: UploadFile = File(None), user_name: str = Cookie(None)):
+async def api_send_message(
+    message: str = Form(...),
+    file: UploadFile = File(None),
+    user_name: str = Cookie(None),
+    group_id: str = Cookie(None)
+):
     if not user_name: return {"success": False}
     author = unquote(user_name)
+    g_id = int(group_id) if group_id and group_id != "None" else 1
 
-    # 1. Сохраняем текст и получаем ID
-    res = db.run('INSERT INTO public."GlobalChat" ("AuthorName", "Message") VALUES (:a, :m) RETURNING "Id"',
-                 a=author, m=message)
+    # Сохраняем сообщение с привязкой к группе
+    res = db.run('''
+        INSERT INTO public."GlobalChat" ("AuthorName", "Message", "GroupId") 
+        VALUES (:a, :m, :g) RETURNING "Id"''',
+        a=author, m=message, g=g_id)
 
-    # ВАЖНО: берем [0][0], так как возвращается [[ID]]
     msg_id = res[0][0]
 
     # 2. Если есть файл - сохраняем
@@ -273,17 +335,29 @@ async def api_send_message(message: str = Form(...), file: UploadFile = File(Non
 
 
 @app.get("/api/chat/messages")
-async def api_get_messages(last_id: int = 0):
+async def api_get_messages(last_id: int = 0, group_id: str = Cookie(None)):
+    # 1. Безопасно определяем ID группы, чтобы не видеть чужую переписку
+    g_id = int(group_id) if group_id and group_id != "None" else 1
+
+    # 2. Добавляем AND c."GroupId" = :g в SQL-запрос
     rows = db.run('''
         SELECT c."Id", c."AuthorName", c."Message", c."CreatedAt", a."Id" as attach_id, a."FileName"
         FROM public."GlobalChat" c
         LEFT JOIN public."ChatAttachments" a ON c."Id" = a."MessageId"
-        WHERE c."Id" > :last_id ORDER BY c."Id" ASC
-    ''', last_id=last_id)
-    return {"messages": [
-        {"id": r[0], "author": r[1], "text": r[2], "time": format_time(r[3]), "file_id": r[4], "file_name": r[5]} for r
-        in rows]}
+        WHERE c."Id" > :last_id AND c."GroupId" = :g
+        ORDER BY c."Id" ASC
+    ''', last_id=last_id, g=g_id)
 
+    return {"messages": [
+        {
+            "id": r[0],
+            "author": r[1],
+            "text": r[2],
+            "time": format_time(r[3]),
+            "file_id": r[4],
+            "file_name": r[5]
+        } for r in rows
+    ]}
 
 # --- ПРОЕКТЫ И КОММЕНТАРИИ ---
 @app.get("/project/{p_id}", response_class=HTMLResponse)
@@ -303,7 +377,13 @@ async def project_detail(request: Request, p_id: int, user_name: str = Cookie(No
         "attachments": attachments, "user_name": unquote(user_name)
     })
 
-
+@app.post("/create_project")
+async def create_project(name: str = Form(...), description: str = Form(...), group_id: str = Cookie("1")):
+    db.run('''
+        INSERT INTO public."Projects" ("Name", "Description", "Status", "GroupId") 
+        VALUES (:n, :d, 'Active', :g)''',
+        n=name, d=description, g=int(group_id))
+    return RedirectResponse(url="/", status_code=303)
 @app.post("/project/{p_id}/comment")
 async def add_comment(p_id: int, text: str = Form(...), file: UploadFile = File(None), user_name: str = Cookie(None)):
     if not user_name: return RedirectResponse(url="/")
@@ -344,29 +424,35 @@ async def edit_comment(c_id: int, p_id: int = Form(...), text: str = Form(...), 
 
 
 @app.get("/archive", response_class=HTMLResponse)
-async def archive_index(request: Request, user_name: str = Cookie(None), q: str = ""):
+async def archive_index(request: Request, user_name: str = Cookie(None), group_id: str = Cookie(None), q: str = ""):
     if not user_name:
         return RedirectResponse(url="/login", status_code=303)
 
-    # 1. Логика поиска: добавляем фильтрацию, если q не пустой
+    # 1. Безопасное определение группы
+    try:
+        g_id = int(group_id) if group_id and group_id != "None" else 1
+    except (ValueError, TypeError):
+        g_id = 1
+
+    # 2. Логика поиска с учетом GroupId
     if q:
         query = '''
             SELECT "Id", "Name", "Description", "CreatedAt" 
             FROM public."Projects" 
-            WHERE "Status" = 'Archived' AND "Name" ILIKE :q 
+            WHERE "Status" = 'Archived' AND "GroupId" = :g AND "Name" ILIKE :q 
             ORDER BY "Id" DESC
         '''
-        projects_raw = db.run(query, q=f"%{q}%")
+        projects_raw = db.run(query, g=g_id, q=f"%{q}%")
     else:
         query = '''
             SELECT "Id", "Name", "Description", "CreatedAt" 
             FROM public."Projects" 
-            WHERE "Status" = 'Archived' 
+            WHERE "Status" = 'Archived' AND "GroupId" = :g 
             ORDER BY "Id" DESC
         '''
-        projects_raw = db.run(query)
+        projects_raw = db.run(query, g=g_id)
 
-    # 2. Форматируем дату для каждого проекта через нашу функцию format_time
+    # 3. Форматируем данные
     projects = [
         (p[0], p[1], p[2], format_time(p[3]))
         for p in projects_raw
@@ -378,7 +464,6 @@ async def archive_index(request: Request, user_name: str = Cookie(None), q: str 
         "user_name": unquote(user_name),
         "search_query": q
     })
-
 @app.get("/download/{attach_id}")
 async def download_file(attach_id: int):
     res = db.run('SELECT "InternalPath", "FileName" FROM public."Attachments" WHERE "Id" = :id', id=attach_id)
@@ -398,7 +483,6 @@ async def archive_project(project_id: int, user_name: str = Cookie(None)):
         return RedirectResponse(url="/login", status_code=303)
 
     # 2. Меняем статус проекта в базе данных
-    # Предполагаем, что у тебя есть колонка Status в таблице Projects
     db.run('''
         UPDATE public."Projects" 
         SET "Status" = 'Archived' 

@@ -47,19 +47,29 @@ def get_safe_name(name: str):
 
 
 """Безопасное форматирование: возвращает ЧЧ:ММ"""
-def format_time(dt):
 
+
+def format_time(dt):
+    """Возвращает строку вида 'ДД.ММ.ГГГГ ЧЧ:ММ'"""
     if not dt:
         return ""
-    if hasattr(dt, 'strftime'):
-        return dt.strftime('%H:%M')
 
-    # Если пришла строка "2026-04-15 13:47:19.473026"
-    dt_str = str(dt)
-    if ' ' in dt_str:
-        # Берем часть после пробела и отрезаем секунды
-        return dt_str.split(' ')[1][:5]
-    return dt_str[:5]
+    # Если это объект datetime (из базы)
+    if hasattr(dt, 'strftime'):
+        return dt.strftime('%d.%m.%Y %H:%M')
+
+    # Если это строка (например, из sqlite или текстового лога)
+    try:
+        dt_str = str(dt)
+        if ' ' in dt_str:
+            # Превращаем "2026-04-15 13:47:19" -> "15.04.2026 13:47"
+            date_part, time_part = dt_str.split(' ')
+            y, m, d = date_part.split('-')
+            return f"{d}.{m}.{y} {time_part[:5]}"
+    except:
+        pass
+
+    return str(dt)[:16]  # Запасной вариант
 
 """Запись в историю проекта (history.txt)"""
 def write_to_history(folder_path: str, author: str, text: str, file_name: str = None, action=""):

@@ -25,19 +25,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const hideBtn = document.getElementById('closeFormBtn');
     const hideCross = document.getElementById('closeFormCross');
 
-    // Функция показать
-    showBtn.onclick = () => {
-        formContainer.style.display = 'block';
-        trigger.style.display = 'none';
-    };
+    // Проверяем, существует ли кнопка на этой странице (на главной - да, в архиве - нет)
+    if (showBtn && formContainer && trigger) {
+        // Функция показать
+        showBtn.onclick = () => {
+            formContainer.style.display = 'block';
+            trigger.style.display = 'none';
+        };
 
-    // Функция скрыть
-    const hideForm = () => {
-        formContainer.style.display = 'none';
-        trigger.style.display = 'block';
-    };
+        // Функция скрыть
+        const hideForm = () => {
+            formContainer.style.display = 'none';
+            trigger.style.display = 'block';
+        };
 
-    hideBtn.onclick = hideForm;
-    hideCross.onclick = hideForm;
+        if (hideBtn) hideBtn.onclick = hideForm;
+        if (hideCross) hideCross.onclick = hideForm;
+    }
 });
 </script>

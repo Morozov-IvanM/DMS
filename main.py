@@ -446,21 +446,70 @@ async def download_chat_file(attach_id: int):
 
 
 @app.post("/archive-project/{project_id}/")
-async def archive_project(project_id: int, user_name: str = Cookie(None)):
+async def archive_project(
+    project_id: int,
+    user_name: str = Cookie(None),
+    group_id: str = Cookie(None)
+):
     # 1. Проверяем авторизацию
     if not user_name:
         return RedirectResponse(url="/login", status_code=303)
 
-    # 2. Меняем статус проекта в базе данных
+    # Определяем ID группы из куки (защита)
+    g_id = int(group_id) if group_id and group_id != "None" else 1
+    author = unquote(user_name)
+
+    # 2. Меняем статус ТОЛЬКО если проект принадлежит группе пользователя
+    # Это защита, чтобы никто не мог через адресную строку закрыть чужой проект
     db.run('''
         UPDATE public."Projects" 
         SET "Status" = 'Archived' 
-        WHERE "Id" = :id
-    ''', id=project_id)
+        WHERE "Id" = :id AND "GroupId" = :g
+    ''', id=project_id, g=g_id)
 
-    # 3. Возвращаемся на главную
-    return RedirectResponse(url="/", status_code=303)
+    # 3. Фиксируем завершение в текстовой истории проекта
+    try:
+        from utils import get_project_path, write_to_history
+        # Получаем путь через нашу новую функцию
+        p_path = get_project_path(project_id, db, UPLOAD_DIR)
+        if p_path:
+            write_to_history(p_path, author, "Проект успешно завершён и перемещён в архив.", action="АРХИВАЦИЯ")
+    except Exception as e:
+        print(f"Ошибка записи в историю при архивации: {e}")
 
+    # 4. Возвращаемся на главную
+    return RedirectResponse(url="/?success=project_archived", status_code=303)
+
+
+@app.post("/project/{project_id}/restore")
+async def restore_project(
+    project_id: int,
+    user_name: str = Cookie(None),
+    group_id: str = Cookie(None)
+):
+    if not user_name:
+        return RedirectResponse(url="/login", status_code=303)
+
+    g_id = int(group_id) if group_id and group_id != "None" else 1
+    author = unquote(user_name)
+
+    # 1. Возвращаем статус Active только для своей группы
+    db.run('''
+        UPDATE public."Projects" 
+        SET "Status" = 'Active' 
+        WHERE "Id" = :id AND "GroupId" = :g
+    ''', id=project_id, g=g_id)
+
+    # 2. Фиксируем восстановление в истории
+    try:
+        from utils import get_project_path, write_to_history
+        p_path = get_project_path(project_id, db, UPLOAD_DIR)
+        if p_path:
+            write_to_history(p_path, author, "Проект возвращён из архива в работу.", action="ВОССТАНОВЛЕНИЕ")
+    except Exception as e:
+        print(f"Ошибка записи в историю: {e}")
+
+    return RedirectResponse(url="/archive?success=project_restored", status_code=303)
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,5 +1,6 @@
 import pg8000.native
-import base64
+import hashlib
+import os
 
 # _p = base64.b64decode("MjdQa3NJZW4=").decode()
 def get_db_connection():
@@ -14,3 +15,10 @@ def get_db_connection():
 
 # Создаем глобальный объект базы (как и было)
 db = get_db_connection()
+
+# Функции безопасности (hash_password и verify_password)
+def hash_password(password: str):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(plain_password, hashed_password):
+    return hash_password(plain_password) == hashed_password

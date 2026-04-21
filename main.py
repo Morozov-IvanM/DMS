@@ -7,20 +7,29 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from urllib.parse import quote, unquote
 from passlib.context import CryptContext
+# Импортируем базу
+from database import db, verify_password
+# Импортируем утилиты
+from utils import format_time, get_safe_name, write_to_history,get_project_path,save_chat_file
+# Импортируем админку
+from admin import router as admin_router
 
 
-
-# Импортируем наши новые модули
-from database import db
-from utils import get_safe_name, format_time, write_to_history
-
-# Настройки путей
+# Базовое хранилище
 UPLOAD_DIR = "C:/CorpStorage/Uploads"
+# Папка чата внутри хранилища
 CHAT_UPLOAD_DIR = os.path.join(UPLOAD_DIR, "Global_Chat")
 os.makedirs(CHAT_UPLOAD_DIR, exist_ok=True)
 
+
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+# Сохраняем шаблоны в state приложения, чтобы admin.py мог их достать
+app.state.templates = templates
+
+# Подключаем роутер админки
+app.include_router(admin_router)
 
 # Монтирование статики
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -93,7 +102,9 @@ async def login(response: Response, login_field: str = Form(...), password: str 
 @app.get("/logout")
 async def logout():
     response = RedirectResponse(url="/login", status_code=303)
-    response.delete_cookie("user_name") # Удаляем куку
+    # Удаляем основные куки
+    response.delete_cookie("user_name")
+    response.delete_cookie("group_id")
     return response
 
 @app.post("/change-password")
@@ -139,84 +150,7 @@ async def change_password(
 async def admin_auth_page(request: Request):
     return templates.TemplateResponse("admin_login.html", {"request": request})
 
-
-# 2. Сама панель
-
-@app.api_route("/admin/panel", methods=["GET", "POST"])  # Разрешаем оба метода
-async def admin_panel_page(request: Request, user_name: str = Cookie(None)):
-    # 1. Базовая проверка прав (куки)
-    if not user_name or unquote(user_name) != "Администратор":
-        return RedirectResponse(url="/?error=no_admin_rights", status_code=303)
-
-    # 2. Если это вход (POST), проверяем пароль
-    if request.method == "POST":
-        form_data = await request.form()
-        admin_password = form_data.get("admin_password")
-
-        admin_row = db.run('SELECT "HashedPassword" FROM public."Users" WHERE "Username" = :u', u="Администратор")
-        if not admin_row or not verify_password(admin_password, admin_row[0][0]):
-            return RedirectResponse(url="/?error=wrong_admin_password", status_code=303)
-
-        # Здесь можно поставить админу временную куку-сессию, чтобы GET пускал его дальше
-        # Но для простоты сейчас просто пропустим к рендеру
-
-    # 3. Получаем список пользователей для таблицы
-    users = db.run('SELECT "Username", "Email" FROM public."Users" ORDER BY "Username"')
-    all_groups = db.run('SELECT "Id", "Name" FROM public."Groups" ORDER BY "Id"')
-    return templates.TemplateResponse("admin_panel.html", {
-        "request": request,
-        "users": users,
-        "all_groups": all_groups
-    })
-
-@app.post("/admin/reset-user-password")
-async def admin_reset_password(
-        user_email: str = Form(...),
-        new_password: str = Form(...),
-        user_name: str = Cookie(None)
-):
-    # Проверка прав доступа (по куки)
-    if not user_name or unquote(user_name) != "Администратор":
-        return RedirectResponse(url="/?error=access_denied", status_code=303)
-
-    email_clean = user_email.strip().lower()
-
-    # 1. Проверяем наличие пользователя
-    user_check = db.run('SELECT "Email" FROM public."Users" WHERE "Email" = :e', e=email_clean)
-    if not user_check:
-        return RedirectResponse(url="/admin/panel?error=user_not_found", status_code=303)
-
-    # 2. Смена пароля без дополнительного подтверждения
-    new_hashed = hash_password(new_password)
-    db.run('UPDATE public."Users" SET "HashedPassword" = :p WHERE "Email" = :e',
-           p=new_hashed, e=email_clean)
-
-    return RedirectResponse(url="/admin/panel?success=admin_reset_done", status_code=303)
-
-@app.post("/admin/change-user-group")
-async def admin_change_user_group(
-    target_email: str = Form(...),
-    new_group_id: int = Form(...),
-    user_name: str = Cookie(None)
-):
-    # 1. Проверка прав админа
-    if not user_name or unquote(user_name) != "Администратор":
-        return RedirectResponse(url="/?error=no_admin_rights", status_code=303)
-    email_clean = target_email.strip().lower()
-    # 2. ПРОВЕРКА: Существует ли такой пользователь?
-    user_check = db.run('SELECT "Username" FROM public."Users" WHERE "Email" = :e', e=email_clean)
-
-    if not user_check:
-        # Если пользователя нет, возвращаем ошибку в URL
-        return RedirectResponse(url="/admin/panel?error=user_not_found", status_code=303)
-    # 2. Обновляем группу в базе
-    db.run('''
-        UPDATE public."Users" 
-        SET "GroupId" = :g 
-        WHERE "Email" = :e
-    ''', g=new_group_id, e=target_email.strip().lower())
-
-    return RedirectResponse(url="/admin/panel?success=group_changed", status_code=303)
+app.include_router(admin_router)
 
 # --- ГЛАВНАЯ СТРАНИЦА ---
 @app.get("/", response_class=HTMLResponse)
@@ -308,6 +242,7 @@ async def api_send_message(
     group_id: str = Cookie(None)
 ):
     if not user_name: return {"success": False}
+
     author = unquote(user_name)
     g_id = int(group_id) if group_id and group_id != "None" else 1
 
@@ -319,17 +254,16 @@ async def api_send_message(
 
     msg_id = res[0][0]
 
-    # 2. Если есть файл - сохраняем
+    # 3. Сохраняем файл через utils.py
     if file and file.filename:
-        f_ext = os.path.splitext(file.filename)[1]
-        f_path = os.path.join(CHAT_UPLOAD_DIR, f"{uuid.uuid4()}{f_ext}")
+        # Вызываем функцию из utils
+        original_name, saved_path = save_chat_file(file, CHAT_UPLOAD_DIR)
 
-        with open(f_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
-        db.run('''INSERT INTO public."ChatAttachments" ("MessageId", "FileName", "InternalPath") 
-                  VALUES (:m_id, :f_n, :i_p)''',
-               m_id=msg_id, f_n=file.filename, i_p=f_path)
+        if saved_path:
+            db.run('''
+                    INSERT INTO public."ChatAttachments" ("MessageId", "FileName", "InternalPath") 
+                    VALUES (:m_id, :f_n, :i_p)''',
+                   m_id=msg_id, f_n=original_name, i_p=saved_path)
 
     return {"success": True}
 
@@ -377,24 +311,45 @@ async def project_detail(request: Request, p_id: int, user_name: str = Cookie(No
         "attachments": attachments, "user_name": unquote(user_name)
     })
 
+
 @app.post("/create_project")
-async def create_project(name: str = Form(...), description: str = Form(...), group_id: str = Cookie("1")):
-    db.run('''
-        INSERT INTO public."Projects" ("Name", "Description", "Status", "GroupId") 
-        VALUES (:n, :d, 'Active', :g)''',
-        n=name, d=description, g=int(group_id))
-    return RedirectResponse(url="/", status_code=303)
+async def create_project(
+    name: str = Form(...),
+    description: str = Form(None),
+    group_id: str = Cookie(None),
+    user_name: str = Cookie(None)
+):
+    # 1. Проверка авторизации
+    if not user_name:
+        return RedirectResponse(url="/login", status_code=303)
+    try:
+        g_id = int(group_id) if group_id and group_id != "None" else 1
+    except (ValueError, TypeError):
+        g_id = 1
+
+    # 3. Подготовка данных
+    author = unquote(user_name)
+    desc = description.strip() if description else ""
+    # 4. Сохраняем проект в БД с привязкой к GroupId
+    res = db.run('''
+            INSERT INTO public."Projects" ("Name", "Description", "Status", "GroupId") 
+            VALUES (:n, :d, 'Active', :g) 
+            RETURNING "Id"
+        ''', n=name.strip(), d=desc, g=g_id)
+
+    new_project_id = res[0][0]
+
+    return RedirectResponse(url="/?success=project_created", status_code=303)
+
+
 @app.post("/project/{p_id}/comment")
 async def add_comment(p_id: int, text: str = Form(...), file: UploadFile = File(None), user_name: str = Cookie(None)):
     if not user_name: return RedirectResponse(url="/")
     author = unquote(user_name)
 
-    p_data = db.run('SELECT "Name" FROM public."Projects" WHERE "Id" = :id', id=p_id)
-    safe_folder = get_safe_name(p_data[0][0])
-    p_path = os.path.join(UPLOAD_DIR, safe_folder)
-    os.makedirs(p_path, exist_ok=True)
+    p_path = get_project_path(p_id, db, UPLOAD_DIR)
 
-    # Запись в историю через утилиту
+     # Запись в историю через утилиту
     write_to_history(p_path, author, text, file.filename if file and file.filename else None)
 
     c_id = \
@@ -410,13 +365,15 @@ async def add_comment(p_id: int, text: str = Form(...), file: UploadFile = File(
 
     return RedirectResponse(url=f"/project/{p_id}", status_code=303)
 
+
 @app.post("/comment/{c_id}/edit")
 async def edit_comment(c_id: int, p_id: int = Form(...), text: str = Form(...), user_name: str = Cookie(None)):
     author = unquote(user_name)
-    p_data = db.run('SELECT "Name" FROM public."Projects" WHERE "Id" = :id', id=p_id)
-    safe_folder = get_safe_name(p_data[0][0])
 
-    write_to_history(os.path.join(UPLOAD_DIR, safe_folder), author, text, action="ИЗМЕНЕНО")
+    p_path = get_project_path(p_id, db, UPLOAD_DIR)
+
+
+    write_to_history(p_path, author, text, action="ИЗМЕНЕНО")
 
     db.run('UPDATE public."Comments" SET "Text" = :t WHERE "Id" = :c_id AND "AuthorName" = :cur', t=text, c_id=c_id,
            cur=author)
@@ -464,17 +421,21 @@ async def archive_index(request: Request, user_name: str = Cookie(None), group_i
         "user_name": unquote(user_name),
         "search_query": q
     })
+
+
 @app.get("/download/{attach_id}")
 async def download_file(attach_id: int):
     res = db.run('SELECT "InternalPath", "FileName" FROM public."Attachments" WHERE "Id" = :id', id=attach_id)
     if res and os.path.exists(res[0][0]): return FileResponse(path=res[0][0], filename=res[0][1])
     return HTMLResponse("Файл не найден", status_code=404)
 
+
 @app.get("/download_chat/{attach_id}")
 async def download_chat_file(attach_id: int):
     res = db.run('SELECT "InternalPath", "FileName" FROM public."ChatAttachments" WHERE "Id" = :id', id=attach_id)
     if res and os.path.exists(res[0][0]): return FileResponse(path=res[0][0], filename=res[0][1])
     return HTMLResponse("Файл не найден", status_code=404)
+
 
 @app.post("/archive-project/{project_id}/")
 async def archive_project(project_id: int, user_name: str = Cookie(None)):

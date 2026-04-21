@@ -44,7 +44,11 @@
 			<div class="user-badge">
 				<i class="fas fa-user-circle"></i> <strong>{{ user_name }}</strong>
 			</div>
-			
+			<div class="form-check form-switch ms-3">
+				<input class="form-check-input" type="checkbox" id="notifySwitch" 
+					   onclick="toggleNotifications(this.checked)" checked>
+				<label class="form-check-label small text-muted" for="notifySwitch">Уведомления</label>
+			</div>
 			
 
 			<a href="/logout" class="btn-logout" title="Выйти">
@@ -53,11 +57,7 @@
 		</div>
 	</div>
 </div>
-<div class="form-check form-switch ms-3">
-	<input class="form-check-input" type="checkbox" id="notifySwitch" 
-		   onclick="toggleNotifications(this.checked)" checked>
-	<label class="form-check-label small text-muted" for="notifySwitch">Уведомления</label>
-</div>
+
 
 <script>
 	// Устанавливаем положение свитча из памяти при загрузке

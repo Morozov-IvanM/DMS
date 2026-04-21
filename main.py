@@ -10,17 +10,15 @@ from passlib.context import CryptContext
 # Импортируем базу
 from database import db, verify_password
 # Импортируем утилиты
-from utils import format_time, get_safe_name, write_to_history,get_project_path,save_chat_file
+from utils import format_time, get_safe_name, write_to_history, get_project_path, save_chat_file
 # Импортируем админку
 from admin import router as admin_router
-
 
 # Базовое хранилище
 UPLOAD_DIR = "C:/CorpStorage/Uploads"
 # Папка чата внутри хранилища
 CHAT_UPLOAD_DIR = os.path.join(UPLOAD_DIR, "Global_Chat")
 os.makedirs(CHAT_UPLOAD_DIR, exist_ok=True)
-
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -40,13 +38,16 @@ if os.path.exists(static_path):
 # Создаем объект для работы с хешированием
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 def hash_password(password: str):
     """Превращает пароль в хеш для хранения в базе"""
     return pwd_context.hash(password)
 
+
 def verify_password(plain_password: str, hashed_password: str):
     """Сравнивает введенный пароль с хешем из базы"""
     return pwd_context.verify(plain_password, hashed_password)
+
 
 # --- РЕГИСТРАЦИЯ ---
 @app.post("/register")
@@ -73,6 +74,7 @@ async def login_page(request: Request, error: str = None, success: str = None):
         "success_msg": success_msg
     })
 
+
 # 2. ОБРАБОТКА ВХОДА
 @app.post("/login")
 async def login(response: Response, login_field: str = Form(...), password: str = Form(...)):
@@ -81,7 +83,7 @@ async def login(response: Response, login_field: str = Form(...), password: str 
         FROM public."Users" 
         WHERE "Email" = :e
         LIMIT 1
-    ''', e=login_field.strip().lower()) # Приводим к нижнему регистру для надежности
+    ''', e=login_field.strip().lower())  # Приводим к нижнему регистру для надежности
 
     if not user_row:
         return RedirectResponse(url="/login?error=UserNotFound", status_code=303)
@@ -99,6 +101,7 @@ async def login(response: Response, login_field: str = Form(...), password: str 
     response.set_cookie(key="group_id", value=str(db_group_id), httponly=True)
     return response
 
+
 @app.get("/logout")
 async def logout():
     response = RedirectResponse(url="/login", status_code=303)
@@ -107,12 +110,13 @@ async def logout():
     response.delete_cookie("group_id")
     return response
 
+
 @app.post("/change-password")
 async def change_password(
-    request: Request,
-    old_password: str = Form(...),
-    new_password: str = Form(...),
-    user_name: str = Cookie(None)
+        request: Request,
+        old_password: str = Form(...),
+        new_password: str = Form(...),
+        user_name: str = Cookie(None)
 ):
     if not user_name:
         return RedirectResponse(url="/login", status_code=303)
@@ -151,6 +155,7 @@ async def admin_auth_page(request: Request):
     return templates.TemplateResponse("admin_login.html", {"request": request})
 
 app.include_router(admin_router)
+
 
 # --- ГЛАВНАЯ СТРАНИЦА ---
 @app.get("/", response_class=HTMLResponse)
@@ -233,13 +238,15 @@ async def index(request: Request, user_name: str = Cookie(None), group_id: str =
         response.set_cookie(key="group_id", value=str(g_id), httponly=True)
 
     return response
+
+
 # --- API ЖИВОГО ЧАТА ---
 @app.post("/api/chat/send")
 async def api_send_message(
-    message: str = Form(...),
-    file: UploadFile = File(None),
-    user_name: str = Cookie(None),
-    group_id: str = Cookie(None)
+        message: str = Form(...),
+        file: UploadFile = File(None),
+        user_name: str = Cookie(None),
+        group_id: str = Cookie(None)
 ):
     if not user_name: return {"success": False}
 
@@ -250,7 +257,7 @@ async def api_send_message(
     res = db.run('''
         INSERT INTO public."GlobalChat" ("AuthorName", "Message", "GroupId") 
         VALUES (:a, :m, :g) RETURNING "Id"''',
-        a=author, m=message, g=g_id)
+                 a=author, m=message, g=g_id)
 
     msg_id = res[0][0]
 
@@ -293,6 +300,7 @@ async def api_get_messages(last_id: int = 0, group_id: str = Cookie(None)):
         } for r in rows
     ]}
 
+
 # --- ПРОЕКТЫ И КОММЕНТАРИИ ---
 @app.get("/project/{p_id}", response_class=HTMLResponse)
 async def project_detail(request: Request, p_id: int, user_name: str = Cookie(None)):
@@ -314,10 +322,10 @@ async def project_detail(request: Request, p_id: int, user_name: str = Cookie(No
 
 @app.post("/create_project")
 async def create_project(
-    name: str = Form(...),
-    description: str = Form(None),
-    group_id: str = Cookie(None),
-    user_name: str = Cookie(None)
+        name: str = Form(...),
+        description: str = Form(None),
+        group_id: str = Cookie(None),
+        user_name: str = Cookie(None)
 ):
     # 1. Проверка авторизации
     if not user_name:
@@ -349,12 +357,13 @@ async def add_comment(p_id: int, text: str = Form(...), file: UploadFile = File(
 
     p_path = get_project_path(p_id, db, UPLOAD_DIR)
 
-     # Запись в историю через утилиту
+    # Запись в историю через утилиту
     write_to_history(p_path, author, text, file.filename if file and file.filename else None)
 
     c_id = \
-    db.run('INSERT INTO public."Comments" ("ProjectId", "AuthorName", "Text") VALUES (:p_id, :a, :t) RETURNING "Id"',
-           p_id=p_id, a=author, t=text)[0][0]
+        db.run(
+            'INSERT INTO public."Comments" ("ProjectId", "AuthorName", "Text") VALUES (:p_id, :a, :t) RETURNING "Id"',
+            p_id=p_id, a=author, t=text)[0][0]
 
     if file and file.filename:
         f_path = os.path.join(p_path, f"{uuid.uuid4()}{os.path.splitext(file.filename)[1]}")
@@ -371,7 +380,6 @@ async def edit_comment(c_id: int, p_id: int = Form(...), text: str = Form(...), 
     author = unquote(user_name)
 
     p_path = get_project_path(p_id, db, UPLOAD_DIR)
-
 
     write_to_history(p_path, author, text, action="ИЗМЕНЕНО")
 
@@ -453,8 +461,8 @@ async def archive_project(project_id: int, user_name: str = Cookie(None)):
     # 3. Возвращаемся на главную
     return RedirectResponse(url="/", status_code=303)
 
+
 if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
-    # try commen

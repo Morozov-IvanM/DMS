@@ -102,38 +102,46 @@
             </div>
 
             <!-- Блок 3: Таблица -->
-            <div class="card admin-card border-0 shadow-sm">
-                <div class="card-header bg-white fw-bold text-dark">Зарегистрированные сотрудники</div>
-                <div class="table-responsive">
-                    <table class="table admin-table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Имя</th>
-                                <th>Email</th>
-                                <th class="text-end">Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for user in users %}
-                            <tr>
-                                <td class="fw-bold text-dark">{{ user[0] }}</td>
-                                <td class="text-muted">{{ user[1] }}</td>
-                                <td class="text-end">
-                                    <button class="btn btn-sm btn-outline-danger me-1" 
-                                            onclick="document.getElementById('reset_email').value='{{ user[1] }}'; window.scrollTo(0, 0);">
-                                        <i class="fas fa-key"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-primary" 
-                                            onclick="document.getElementById('group_change_email').value='{{ user[1] }}'; window.scrollTo(0, 400);">
-                                        <i class="fas fa-exchange-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+			<div class="card admin-card border-0 shadow-sm">
+				<div class="card-header bg-white fw-bold text-dark">Зарегистрированные сотрудники</div>
+				<div class="table-responsive">
+					<table class="table admin-table table-hover mb-0">
+						<thead>
+							<tr>
+								<th>Имя</th>
+								<th>Email</th>
+								<th>Отдел</th> <!-- НОВАЯ КОЛОНКА -->
+								<th class="text-end">Действия</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for user in users %}
+							<tr>
+								<td class="fw-bold text-dark">{{ user[0] }}</td>
+								<td class="text-muted">{{ user[1] }}</td>
+								<td>
+									<!-- Выводим название отдела или прочерк -->
+									<span class="badge bg-light text-primary border px-2 py-1" style="font-size: 0.75rem;">
+										<i class="fas fa-layer-group me-1 opacity-50"></i>
+										{{ user[2] if user[2] else 'Не назначен' }}
+									</span>
+								</td>
+								<td class="text-end">
+									<button class="btn btn-sm btn-outline-danger me-1" 
+											onclick="document.getElementById('reset_email').value='{{ user[1] }}'; window.scrollTo(0, 0);" title="Сброс пароля">
+										<i class="fas fa-key"></i>
+									</button>
+									<button class="btn btn-sm btn-outline-primary" 
+											onclick="document.getElementById('group_change_email').value='{{ user[1] }}'; window.scrollTo(0, 400);" title="Смена отдела">
+										<i class="fas fa-exchange-alt"></i>
+									</button>
+								</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
         </div>
     </div>
 </div>

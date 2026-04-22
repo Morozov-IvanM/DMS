@@ -12,10 +12,14 @@ async def admin_panel_page(request: Request, user_name: str = Cookie(None)):
     if not user_name or unquote(user_name) != "Администратор":
         return RedirectResponse(url="/?error=no_admin_rights", status_code=303)
 
-    users = db.run('SELECT "Username", "Email" FROM public."Users" ORDER BY "Username"')
+    users = db.run('''
+           SELECT u."Username", u."Email", g."Name" as "GroupName"
+           FROM public."Users" u
+           LEFT JOIN public."Groups" g ON u."GroupId" = g."Id"
+           ORDER BY u."Username"
+       ''')
     all_groups = db.run('SELECT "Id", "Name" FROM public."Groups" ORDER BY "Id"')
 
-    # Шаблоны мы возьмем из request.app.state (настроим это в main.py)
     return request.app.state.templates.TemplateResponse("admin_panel.html", {
         "request": request,
         "users": users,

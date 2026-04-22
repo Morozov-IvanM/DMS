@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert.style.transform = "translateY(-20px)";
                 setTimeout(() => alert.remove(), 600);
             }
-        }, 5000);
+        }, 2000);
     }
 });
 </script>

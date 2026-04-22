@@ -7,7 +7,7 @@ from database import db, hash_password  # Импортируем из нашег
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
-@router.get("/panel", response_class=HTMLResponse)
+@router.api_route("/panel", methods=["GET", "POST"]) # Должно быть так!
 async def admin_panel_page(request: Request, user_name: str = Cookie(None)):
     if not user_name or unquote(user_name) != "Администратор":
         return RedirectResponse(url="/?error=no_admin_rights", status_code=303)

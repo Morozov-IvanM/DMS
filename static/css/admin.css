@@ -1,0 +1,86 @@
+/* ==========================================================
+   ADMIN PANEL STYLES
+   ========================================================== */
+
+/* Боковое меню навигации */
+.admin-sidebar .list-group-item {
+    background-color: var(--bg-card);
+    border-color: var(--border);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    padding: 0.75rem 1.25rem;
+    transition: all 0.2s;
+}
+
+.admin-sidebar .list-group-item:hover {
+    background-color: var(--accent-bg);
+    color: var(--accent);
+}
+
+.admin-sidebar .list-group-item.active {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+    font-weight: 600;
+}
+
+/* Таблица пользователей */
+.admin-table {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.admin-table thead {
+    background-color: var(--bg-input);
+    color: var(--text-secondary);
+}
+
+.admin-table th, .admin-table td {
+    border-color: var(--border) !important;
+    padding: 1rem !important;
+    vertical-align: middle;
+}
+
+.admin-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Кнопки действий в таблице */
+.admin-action-btn {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.admin-action-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Специфические блоки (Сброс пароля, Группы) */
+.admin-card-header-danger {
+    color: var(--danger);
+    border-bottom: 2px solid var(--danger) !important;
+}
+
+.admin-card-header-primary {
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent) !important;
+}
+
+/* Адаптив для таблиц на мобилках */
+@media (max-width: 768px) {
+    .admin-table {
+        font-size: 0.8rem;
+    }
+    .admin-action-btn {
+        width: 28px;
+        height: 28px;
+    }
+}

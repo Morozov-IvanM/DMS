@@ -2446,11 +2446,46 @@ body {
     margin-top: 2px;
 }
 .modal { display: none; }
-.chat-box { display: flex; flex-direction: column; gap: 10px; padding: 15px; }
-	.chat-msg { max-width: 80%; padding: 8px 12px; border-radius: 15px; font-size: 0.9rem; position: relative; }
-	.msg-other { align-self: flex-start; background-color: #ffffff !important; border: 1px solid #dee2e6; color: #333; }
-	.msg-me { align-self: flex-end; background-color: #007bff !important; color: white !important; }
-	.chat-author { font-weight: bold; font-size: 0.75rem; display: block; margin-bottom: 2px; }
-	.chat-time { font-size: 0.65rem; opacity: 0.7; display: block; text-align: right; }
-	.mention-me { background: #ffc107; color: #212529; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
+
+/* Кнопка удаления в чате */
+.btn-delete-msg {
+    color: #ff4d4d !important; /* Ярко-красный */
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.8)); /* Белый контур вокруг иконки */
+}
+
+/* При наведении становится ярче */
+.btn-delete-msg:hover {
+    opacity: 1;
+    transform: scale(1.2);
+    color: #ff0000 !important;
+}
+
+/* Специфично для ваших (синих) сообщений */
+.msg-me .btn-delete-msg {
+    color: #ffc107 !important; /* На синем фоне золото/желтый видно лучше всего */
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
+
+}
+/* Кнопка удаления в чате */
+.btn-delete-msg {
+    color: #ff4d4d !important; /* Ярко-красный */
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.8)); /* Белый контур вокруг иконки */
+}
+
+/* При наведении становится ярче */
+.btn-delete-msg:hover {
+    opacity: 1;
+    transform: scale(1.2);
+    color: #ff0000 !important;
+}
+
+/* Специфично для ваших (синих) сообщений */
+.msg-me .btn-delete-msg {
+    color: #ffc107 !important; /* На синем фоне золото/желтый видно лучше всего */
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
 }

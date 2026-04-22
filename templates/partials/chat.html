@@ -3,7 +3,7 @@
     <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
         <span>
             <i class="fas fa-comments me-2 text-info"></i> 
-            {# Выводим название группы, если передали его из Python, иначе стандартное #}
+         
             {{ group_name if group_name else "Чат группы" }}
         </span>
         <span class="badge bg-success small" style="font-size: 0.6rem; letter-spacing: 1px;">
@@ -16,7 +16,21 @@
             {% for msg in chat_messages|reverse %}
             <div class="chat-msg {% if msg[1] == user_name %}msg-me{% else %}msg-other{% endif %} shadow-sm">
                 <span class="chat-author">{{ msg[1] }}</span>
-                <div class="chat-text">
+                
+				 
+				<!-- КНОПКА УДАЛЕНИЯ: Видна только Администратору -->
+				{% if user_name == "Администратор" %}
+				<button type="button" class="btn btn-link text-danger p-0 border-0 ms-2" 
+						onclick="confirmDeleteMessage({{ msg[0] }}, this)"
+
+						title="УДАЛИТЬ">
+					<i class="fas fa-trash-alt"></i>
+				</button>
+				{% endif %}
+				
+				
+				
+				<div class="chat-text">
                     {{ msg[2] }}
                 </div>
                 

@@ -42,3 +42,18 @@ async def admin_change_user_group(target_email: str = Form(...), new_group_id: i
     db.run('UPDATE public."Users" SET "GroupId" = :g WHERE "Email" = :e',
            g=new_group_id, e=target_email.strip().lower())
     return RedirectResponse(url="/admin/panel?success=group_changed", status_code=303)
+
+"""Удаление сообщений из глобального чата"""
+@router.post("/delete-chat-message/{msg_id}")
+async def delete_chat_message(msg_id: int, user_name: str = Cookie(None)):
+    # Проверка прав администратора
+    if not user_name or unquote(user_name) != "Администратор":
+        return {"success": False, "error": "Отказ в доступе"}
+
+    # Удаляем сообщение
+    db.run('DELETE FROM public."GlobalChat" WHERE "Id" = :id', id=msg_id)
+
+    # Файлы вложений (ChatAttachments) удалятся сами,
+    # если в БД настроено ON DELETE CASCADE
+
+    return {"success": True}

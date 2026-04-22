@@ -3,7 +3,11 @@ import os
 from datetime import datetime
 import uuid
 import shutil
+from fastapi import HTTPException
 
+
+# 50 МБ в байтах(Ограничения вложений)
+MAX_FILE_SIZE = 50 * 1024 * 1024
 
 """Сохраняет файл на диск с уникальным именем и возвращает (имя_файла, путь)"""
 def save_chat_file(upload_file, storage_dir):
@@ -82,3 +86,19 @@ def write_to_history(folder_path: str, author: str, text: str, file_name: str = 
     with open(history_path, "a", encoding="utf-16") as f:
         f.write(f"[{timestamp}] {author}{action_info}:\n{text}{file_info}\n")
         f.write("-" * 30 + "\n")
+
+
+def check_file_size(file):
+    """Проверяет размер файла. Если больше лимита — возвращает False."""
+    if not file or not file.filename:
+        return True  # Файла нет, проверять нечего
+
+    # Перемещаем указатель в конец, чтобы узнать размер
+    file.file.seek(0, os.SEEK_END)
+    file_size = file.file.tell()
+    # Возвращаем указатель в начало, чтобы файл можно было прочитать/сохранить
+    file.file.seek(0)
+
+    if file_size > MAX_FILE_SIZE:
+        return False
+    return True

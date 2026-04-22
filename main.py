@@ -1,7 +1,7 @@
 import os
 import uuid
 import shutil
-from fastapi import FastAPI, Request, UploadFile, File, Form, Response, Cookie
+from fastapi import FastAPI, Request, UploadFile, File, Form, Response, Cookie, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -10,7 +10,7 @@ from passlib.context import CryptContext
 # Импортируем базу
 from database import db, verify_password
 # Импортируем утилиты
-from utils import format_time, get_safe_name, write_to_history, get_project_path, save_chat_file
+from utils import format_time, get_safe_name, write_to_history, get_project_path, save_chat_file,check_file_size
 # Импортируем админку
 from admin import router as admin_router
 
@@ -249,6 +249,11 @@ async def api_send_message(
         group_id: str = Cookie(None)
 ):
     if not user_name: return {"success": False}
+    # ПРОВЕРКА РАЗМЕРА
+    if file and file.filename:
+        if not check_file_size(file):
+            return {"success": False, "error": "Файл слишком велик (макс. 50 МБ)"}
+
 
     author = unquote(user_name)
     g_id = int(group_id) if group_id and group_id != "None" else 1
@@ -353,6 +358,12 @@ async def create_project(
 @app.post("/project/{p_id}/comment")
 async def add_comment(p_id: int, text: str = Form(...), file: UploadFile = File(None), user_name: str = Cookie(None)):
     if not user_name: return RedirectResponse(url="/")
+
+    if file and file.filename:
+        if not check_file_size(file):
+            # Перенаправляем обратно с ошибкой в URL
+            return RedirectResponse(url=f"/project/{p_id}?error=file_too_large", status_code=303)
+
     author = unquote(user_name)
 
     p_path = get_project_path(p_id, db, UPLOAD_DIR)

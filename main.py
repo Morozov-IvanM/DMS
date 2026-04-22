@@ -55,9 +55,9 @@ async def register(username: str = Form(...), email: str = Form(...), password: 
     try:
         hashed = hash_password(password)
         db.run('''
-            INSERT INTO public."Users" ("Username", "Email", "HashedPassword") 
-            VALUES (:u, :e, :p)
-        ''', u=username, e=email, p=hashed)
+                INSERT INTO public."Users" ("Username", "Email", "HashedPassword", "GroupId")
+                VALUES (:u, :e, :p, 0)
+            ''', u=username, e=email.strip().lower(), p=hashed)
         return RedirectResponse(url="/login?success=registered", status_code=303)
     except Exception as e:
         return RedirectResponse(url="/login?error=UserExists", status_code=303)
@@ -164,18 +164,30 @@ async def index(request: Request, user_name: str = Cookie(None), group_id: str =
         return templates.TemplateResponse("login.html", {"request": request})
 
     decoded_name = unquote(user_name)
+    # 1. Берем актуальный GroupId из базы данных (это истина)
+    user_row = db.run('SELECT "GroupId" FROM public."Users" WHERE "Username" = :u', u=decoded_name)
 
-    # 1. Синхронизация группы: берем актуальный GroupId из базы данных
-    user_data = db.run('SELECT "GroupId" FROM public."Users" WHERE "Username" = :u', u=decoded_name)
+    # Если юзера нет в базе (удалили), кидаем на логин
+    if not user_row:
+        return RedirectResponse(url="/logout", status_code=303)
 
-    # Определяем правильный ID группы (приоритет базе, если нет — куке, если нет — 1)
-    if user_data and user_data[0][0]:
-        actual_g_id = int(user_data[0][0])
-    else:
-        try:
-            actual_g_id = int(group_id) if group_id and group_id != "None" else 1
-        except:
-            actual_g_id = 1
+    actual_g_id = int(user_row[0][0])
+
+    # 2. ЕСЛИ ГРУППА 0 — СРАЗУ ПОКАЗЫВАЕМ ЗАГЛУШКУ
+    if actual_g_id == 0:
+        return templates.TemplateResponse("waiting_room.html", {
+            "request": request,
+            "user_name": decoded_name
+        })
+
+    # 3. Синхронизация куки (если админ сменил группу в БД, а в браузере старая)
+    needs_cookie_update = str(group_id) != str(actual_g_id)
+    g_id = actual_g_id
+
+    # 4. Получаем название группы
+    group_row = db.run('SELECT "Name" FROM public."Groups" WHERE "Id" = :g', g=g_id)
+    group_name = group_row[0][0] if group_row else f"Отдел №{g_id}"
+
 
     # 2. Проверяем, нужно ли обновить куку в браузере (если в БД группа уже другая)
     needs_cookie_update = str(group_id) != str(actual_g_id)

@@ -1,0 +1,13 @@
+<body class="bg-dark text-white text-center" style="padding-top: 15vh;">
+    <div class="container">
+        <i class="fas fa-user-clock fa-5x text-warning mb-4"></i>
+        <h1>Здравствуйте, {{ user_name }}!</h1>
+        <p class="lead">Ваш аккаунт успешно зарегистрирован в системе <strong>DMS</strong>.</p>
+        <div class="alert alert-info d-inline-block shadow-sm">
+            <i class="fas fa-info-circle me-2"></i> 
+            Ваш доступ ожидает подтверждения администратором.
+        </div>
+        <p class="text-muted small mt-3">После назначения вас в рабочий отдел, функционал станет доступен автоматически.</p>
+        <a href="/logout" class="btn btn-outline-light btn-sm mt-4">Выйти из аккаунта</a>
+    </div>
+</body>

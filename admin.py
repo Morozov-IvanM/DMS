@@ -61,3 +61,24 @@ async def delete_chat_message(msg_id: int, user_name: str = Cookie(None)):
     # если в БД настроено ON DELETE CASCADE
 
     return {"success": True}
+
+
+"""Создание новых групп"""
+@router.post("/create-group")
+async def admin_create_group(
+    group_name: str = Form(...),
+    user_name: str = Cookie(None)
+):
+    # 1. Проверка прав
+    if not user_name or unquote(user_name) != "Администратор":
+        return RedirectResponse(url="/", status_code=303)
+
+    # 2. Очистка названия
+    clean_name = group_name.strip()
+    if not clean_name:
+        return RedirectResponse(url="/admin/panel?error=empty_group_name", status_code=303)
+
+    # 3. Сохранение в БД
+    db.run('INSERT INTO public."Groups" ("Name") VALUES (:n)', n=clean_name)
+
+    return RedirectResponse(url="/admin/panel?success=group_created", status_code=303)

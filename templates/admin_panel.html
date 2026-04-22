@@ -42,10 +42,21 @@
 					<i class="fas fa-check-circle fa-lg"></i>
 				</div>
 				
-				<!-- Текстовая часть -->
+				<!-- Текстовая часть с условиями Jinja2 -->
 				<div class="flex-grow-1">
-					<strong class="d-block text-dark">Система: Данные обновлены</strong>
-					<span class="small text-muted">Операция выполнена успешно!</span>
+					{% if request.query_params.get('success') == 'group_created' %}
+						<strong class="d-block text-dark">Система: Группа создана</strong>
+						<span class="small text-muted">Новый отдел успешно добавлен в список!</span>
+					{% elif request.query_params.get('success') == 'group_changed' %}
+						<strong class="d-block text-dark">Система: Отдел изменен</strong>
+						<span class="small text-muted">Сотрудник успешно переведен в новую группу.</span>
+					{% elif request.query_params.get('success') == 'admin_reset_done' %}
+						<strong class="d-block text-dark">Система: Пароль сброшен</strong>
+						<span class="small text-muted">Новый пароль для пользователя успешно установлен.</span>
+					{% else %}
+						<strong class="d-block text-dark">Система: Успех</strong>
+						<span class="small text-muted">Операция выполнена успешно!</span>
+					{% endif %}
 				</div>
 				
 				<!-- Кнопка закрытия -->
@@ -142,6 +153,24 @@
 					</table>
 				</div>
 			</div>
+			<!-- Блок: Создание новой группы -->
+			<div id="group-section" class="card admin-card border-0 mb-4 shadow-sm">
+				<div class="card-header admin-card-header bg-white fw-bold text-success">
+					<i class="fas fa-plus-circle me-2"></i> Создать новый отдел (группу)
+				</div>
+				<div class="card-body">
+					<form action="/admin/create-group" method="post" class="row g-3">
+						<div class="col-md-9">
+							<label class="form-label small fw-bold text-muted">Название нового отдела</label>
+							<input type="text" name="group_name" class="form-control admin-input" 
+								   placeholder="Например: Отдел безопасности" required>
+						</div>
+						<div class="col-md-3 d-flex align-items-end">
+							<button type="submit" class="btn btn-success w-100 fw-bold">Создать</button>
+						</div>
+					</form>
+				</div>
+			</div>
         </div>
     </div>
 </div>
@@ -150,29 +179,18 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const alert = document.getElementById('success-alert');
-    
     if (alert) {
-        // 1. Очистка URL сразу (чтобы не вылетало при F5)
+        // Удаляем параметр из адреса, чтобы не висел
         const url = new URL(window.location);
         url.searchParams.delete('success');
         window.history.replaceState({}, document.title, url);
 
-        // 2. Ручное закрытие по клику на крестик (если Bootstrap молчит)
-        const closeBtn = alert.querySelector('.btn-close');
-        if (closeBtn) {
-            closeBtn.onclick = function() {
-                alert.remove();
-            };
-        }
-
-        // 3. Авто-скрытие через 5 секунд
+        // Плавное скрытие через 2 секунды
         setTimeout(() => {
-            if (alert) {
-                alert.style.transition = "opacity 0.6s ease, transform 0.6s ease";
-                alert.style.opacity = "0";
-                alert.style.transform = "translateY(-20px)";
-                setTimeout(() => alert.remove(), 600);
-            }
+            alert.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+            alert.style.opacity = "0";
+            alert.style.transform = "translateY(-10px)";
+            setTimeout(() => alert.remove(), 400);
         }, 2000);
     }
 });

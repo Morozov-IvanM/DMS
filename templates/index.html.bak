@@ -6,12 +6,14 @@
     <title>CMR — Лента проектов</title>
     <link rel="stylesheet" href="{{ url_for('static', path='css/bootstrap.min.css') }}">
 	<link rel="stylesheet" href="{{ url_for('static', path='css/corporate_reddit.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', path='css/chat.css') }}"> <!-- Самый приоритетный -->
 </head>
-<body>													<!-- Хедер -->
-    <header class="header">
+<body>		
+	<!-- Хедер --> 
+	<header class="header">
     {% include 'partials/header.html' %}    
     </header>
-																<!-- Глобальный чат -->
+																
 	{% include 'partials/chat.html' %}
 		
     <div class="page-container">

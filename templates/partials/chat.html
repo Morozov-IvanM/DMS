@@ -20,9 +20,8 @@
 				 
 				<!-- КНОПКА УДАЛЕНИЯ: Видна только Администратору -->
 				{% if user_name == "Администратор" %}
-				<button type="button" class="btn btn-link text-danger p-0 border-0 ms-2" 
+				<button type="button" class="chat-admin-delete" 
 						onclick="confirmDeleteMessage({{ msg[0] }}, this)"
-
 						title="УДАЛИТЬ">
 					<i class="fas fa-trash-alt"></i>
 				</button>

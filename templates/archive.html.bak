@@ -3,72 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CMR — Архив проектов</title>
-    <!-- Используем те же стили, что и везде -->
+    <title>CMR — Архив группы</title>
     <link rel="stylesheet" href="{{ url_for('static', path='css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/corporate_reddit.css') }}">
 </head>
-<body>
-    <!-- 1. Тот же хедер, что и на главной (он сам подставит поиск и юзера) -->
+<body class="bg-light">
+    <!-- 1. Хедер (автоматически подхватит имя и группу из контекста) -->
     <header class="header">
         {% include 'partials/header.html' %}
     </header>
 
-    <div class="page-container">
-        <!-- 2. Герой-секция (уникальна для архива, её оставляем тут) -->
-        <div class="archive-hero">
-            <div class="archive-hero-icon"><i class="fas fa-archive"></i></div>
-            <div class="archive-hero-content">
-                <h1>Архив проектов</h1>
-                <p>Завершённые проекты и их резолюции. Здесь хранится история нашей работы.</p>
-            </div>
-            <div class="archive-stats">
-                <div class="stat-item">
-                    <span class="stat-value">{{ projects|length }}</span>
-                    <span class="stat-label">проектов</span>
+    <div class="page-container container mt-4">
+        <!-- 2. Герой-секция архива -->
+        <div class="archive-hero shadow-sm rounded-3 p-4 mb-4 text-white" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%);">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <div class="archive-hero-icon me-4" style="font-size: 3.5rem; opacity: 0.8;">
+                        <i class="fas fa-archive"></i>
+                    </div>
+                    <div class="archive-hero-content">
+                        <h1 class="h2 mb-1 fw-bold">Архив проектов</h1>
+                        <p class="mb-0 opacity-75">История завершённых задач вашей группы.</p>
+                    </div>
+                </div>
+                <div class="archive-stats text-center border-start ps-4">
+                    <div class="stat-item">
+                        <div class="stat-value h2 mb-0 fw-bold">{{ projects|length }}</div>
+                        <div class="stat-label small text-uppercase opacity-75" style="letter-spacing: 1px;">Завершено</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 3. Список архивных проектов -->
-        <div class="archive-grid mt-4">
+        <!-- 3. Сетка проектов или пустое состояние -->
+        <div class="archive-grid">
             {% if projects %}
-                <div class="projects-grid">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                     {% for p in projects %}
-                        <!-- Переиспользуем твой стиль карточек, но можем добавить класс archive-mode -->
-                        <a href="/project/{{ p[0] }}" class="project-link archive-mode">
-                            <div class="project-grid-card shadow-sm">
-                                <div class="project-card-header">
-                                    <span class="project-id-badge">#{{ p[0] }}</span>
-                                    <span class="badge bg-secondary">
-                                        <i class="fas fa-check-circle"></i> Завершён
+                    <div class="col">
+                        <a href="/project/{{ p[0] }}" class="text-decoration-none h-100 d-block">
+                            <div class="card h-100 shadow-sm border-0 project-grid-card hover-lift">
+                                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 px-3">
+                                    <span class="badge bg-light text-dark border small">#{{ p[0] }}</span>
+                                    <span class="badge bg-secondary-subtle text-secondary small px-2">
+                                        <i class="fas fa-history me-1"></i> Архив
                                     </span>
                                 </div>
-                                <h4 class="project-card-title">{{ p[1] }}</h4>
-                                <p class="project-card-description">
-                                    {{ p[2][:120] if p[2] else 'Описание отсутствует' }}
-                                </p>
-                                <div class="project-card-footer text-muted small">
-                                    <i class="fas fa-calendar-alt"></i> {{ p[3] if p[3] else 'Нет даты' }}
+                                <div class="card-body px-3 py-2">
+                                    <h5 class="card-title text-dark fw-bold mb-2">{{ p[1] }}</h5>
+                                    <p class="card-text text-muted small mb-0">
+                                        {{ p[2][:100] + '...' if p[2] and p[2]|length > 100 else p[2] or 'Описание отсутствует' }}
+                                    </p>
+                                </div>
+                                <div class="card-footer bg-transparent border-0 pb-3 px-3 text-muted small">
+                                    <i class="fas fa-calendar-check me-1"></i> Закрыт: {{ p[3] }}
                                 </div>
                             </div>
                         </a>
+                    </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="empty-state-card text-center p-5">
-                    <i class="fas fa-archive fa-3x mb-3 text-muted"></i>
-                    <h3>Архив пуст</h3>
-                    <p>Здесь будут отображаться завершенные проекты.</p>
+                <!-- Интеллектуальная заглушка -->
+                <div class="card border-0 shadow-sm text-center p-5 mt-4 bg-white">
+                    <div class="card-body">
+                        {% if search_query %}
+                            <i class="fas fa-search-minus fa-4x text-muted mb-3 opacity-25"></i>
+                            <h3 class="fw-bold text-dark">Ничего не нашли</h3>
+                            <p class="text-muted">По запросу «<strong>{{ search_query }}</strong>» в архиве группы пусто.</p>
+                            <a href="/archive" class="btn btn-primary btn-sm mt-2 px-4 rounded-pill shadow-sm">Сбросить поиск</a>
+                        {% else %}
+                            <i class="fas fa-box-open fa-4x text-muted mb-3 opacity-25"></i>
+                            <h3 class="fw-bold text-dark">Архив пока пуст</h3>
+                            <p class="text-muted">Здесь будут отображаться завершенные проекты вашей группы.</p>
+                        {% endif %}
+                    </div>
                 </div>
             {% endif %}
         </div>
 
-        <!-- 4. Общий футер и модалки -->
+        <!-- 4. Футер -->
         {% include 'partials/footer.html' %}
     </div>
 
-    <!-- 5. Общие скрипты -->
+    <!-- 5. Скрипты -->
     {% include 'partials/scripts.html' %}
 </body>
 </html>

@@ -1,0 +1,145 @@
+/* ==========================================================
+   LAYOUT: HEADER, FOOTER, CONTAINERS
+   ========================================================== */
+
+/* Хедер - закреплен сверху */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(22, 24, 28, 0.95);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Логотип с градиентом */
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+/* Поиск */
+.search-wrapper {
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding-right: 4px;
+    transition: all 0.2s;
+}
+
+.search-wrapper:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.search-input {
+    width: 250px;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 0.875rem;
+    outline: none;
+}
+
+/* Информация о пользователе */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--accent-bg);
+    padding: 0.4rem 1rem;
+    border-radius: 40px;
+    color: var(--accent);
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.btn-logout {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    padding: 0.4rem 1rem;
+    border-radius: 40px;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-logout:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* Основной контейнер страницы */
+.page-container {
+    max-width: 1400px;
+    margin: 85px auto 0 auto; /* Отступ сверху под фиксированный хедер */
+    padding: 0 2rem 2rem 2rem;
+    min-height: calc(100vh - 85px);
+}
+
+/* Футер */
+.footer {
+    margin-top: 3rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+}
+
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+/* ==========================================================
+   MOBILE ADAPTIVITY (Объединенная)
+   ========================================================== */
+@media (max-width: 900px) {
+    .header-content {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    .search-input {
+        width: 100%;
+    }
+    .page-container {
+        margin-top: 180px; /* Больше отступ, так как хедер стал выше */
+    }
+    .user-info {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}

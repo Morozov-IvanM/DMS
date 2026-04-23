@@ -73,7 +73,9 @@
                             <i class="fas fa-paperclip"></i>
                             <input type="file" name="file" id="comment-file" style="display:none" onchange="showProjectFilePreview(this)">
                         </label>
-                        <input type="text" name="text" class="chat-input-field" placeholder="Написать комментарий в проект..." required autocomplete="off">
+                        <textarea name="text" id="project-comment-input" class="chat-input-field" 
+							placeholder="Написать комментарий в проект..." required 
+							rows="1" oninput="autoResize(this)"></textarea>
                         <button class="chat-send-btn" type="submit">
                             <i class="fas fa-paper-plane"></i>
                         </button>
@@ -104,7 +106,8 @@
                             <small class="text-muted">{{ c[3].strftime('%d.%m.%Y %H:%M') if c[3] else '' }}</small>
                         </div>
                         <div class="comment-body">
-							<p class="mb-0 text-white">{{ c[2] }}</p>
+							<pre class="comment-text-multi">{{ c[2] }}</pre>
+
 
 							<!-- ВЛОЖЕНИЯ -->
 							<div class="attachments-list mt-2">
@@ -131,6 +134,7 @@
     <script src="{{ url_for('static', path='js/bootstrap.bundle.min.js') }}"></script>
     
     <script>
+        // 1. Предпросмотр файла
         function showProjectFilePreview(input) {
             const preview = document.getElementById('project-file-preview');
             const nameSpan = document.getElementById('project-file-name');
@@ -139,12 +143,35 @@
                 preview.style.display = 'flex';
             }
         }
+
         function clearProjectFile() {
             const input = document.getElementById('comment-file');
             const preview = document.getElementById('project-file-preview');
             input.value = "";
             preview.style.display = 'none';
         }
+
+        // 2. Авто-высота текстового поля
+        function autoResize(textarea) {
+            textarea.style.height = 'auto'; 
+            const newHeight = Math.min(textarea.scrollHeight, 200); 
+            textarea.style.height = newHeight + 'px';
+        }
+
+        // 3. Отправка по Enter (Shift+Enter для новой строки)
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('project-comment-input');
+            if (input) {
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault(); 
+                        if (this.value.trim() !== "" || document.getElementById('comment-file').files.length > 0) {
+                            this.form.submit();
+                        }
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

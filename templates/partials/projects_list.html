@@ -1,44 +1,52 @@
 <div class="left-column">
-	<div class="section-header">
-		<h3>
-			<i class="fas fa-play-circle"></i> Активные проекты
-		</h3>
-		<span class="projects-count">{{ projects|length }}</span>
-	</div>
+    <div class="section-header d-flex justify-content-between align-items-center mb-4">
+        <h3 class="m-0">
+            <i class="fas fa-play-circle text-primary me-2"></i>Активные проекты
+        </h3>
+        <span class="project-id-tag">{{ projects|length }}</span>
+    </div>
 
-	<div class="projects-grid">
-		{% if projects %}
-			{% for p in projects %}
-			<a href="/project/{{ p[0] }}" class="project-link">
-				<div class="project-grid-card">
-					<div class="project-card-header">
-						<span class="project-id-badge">#{{ p[0] }}</span>
-						<span class="badge badge-resolution">
-							<i class="fas fa-play-circle"></i> Активен
-						</span>
-					</div>
-					<h4 class="project-card-title">{{ p[1] }}</h4>
-					<p class="project-card-description">
-						{% if p[2] %}
-							{{ p[2][:80] }}{% if p[2]|length > 80 %}...{% endif %}
-						{% else %}
-							<span class="text-secondary"><i class="fas fa-edit"></i> Нет описания</span>
-						{% endif %}
-					</p>
-					<div class="project-card-footer">
-						<span class="card-action">
-							<i class="fas fa-comments"></i> Обсудить
-						</span>
-					</div>
-				</div>
-			</a>
-			{% endfor %}
-		{% else %}
-			<div class="empty-state-card">
-				<i class="fas fa-inbox"></i>
-				<h3>Нет активных проектов</h3>
-				<p>Создайте новый проект, используя форму выше.</p>
-			</div>
-		{% endif %}
-	</div>
+    <div class="projects-feed">
+        {% if projects %}
+            {% for p in projects %}
+            <div class="position-relative">
+                <!-- Ссылка на проект -->
+                <a href="/project/{{ p[0] }}" class="project-grid-card">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="project-id-tag">#{{ p[0] }}</span>
+                        <span class="badge bg-light text-success border">
+                            <i class="fas fa-check-circle me-1"></i>Активен
+                        </span>
+                    </div>
+
+                    <span class="project-grid-title">{{ p[1] }}</span>
+
+                    <p class="project-grid-desc">
+                        {% if p[2] %}
+                            {{ p[2][:120] }}{% if p[2]|length > 120 %}...{% endif %}
+                        {% else %}
+                            <span class="opacity-50 italic small">Описание не добавлено...</span>
+                        {% endif %}
+                    </p>
+
+                    <div class="project-grid-meta">
+                        <span><i class="fas fa-comments me-1"></i>Обсудить</span>
+                        <span><i class="far fa-calendar-alt me-1"></i>{{ p[3] if p|length > 3 else 'Сегодня' }}</span>
+                    </div>
+                </a>
+
+                <!-- КНОПКА ИЗБРАННОЕ (Звездочка) -->
+                <button class="favorite-btn" onclick="toggleFavorite({{ p[0] }}, this)" title="В избранное">
+                    <i class="far fa-star"></i>
+                </button>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state-card shadow-sm">
+                <i class="fas fa-folder-open mb-3 opacity-25" style="font-size: 3rem;"></i>
+                <h3>Проектов пока нет</h3>
+                <p class="text-muted">Создайте первый проект в панели управления выше.</p>
+            </div>
+        {% endif %}
+    </div>
 </div>

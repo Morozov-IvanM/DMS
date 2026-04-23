@@ -30,10 +30,18 @@ app.state.templates = templates
 app.include_router(admin_router)
 
 # Монтирование статики
+# 1. Находим папку проекта, где лежит этот main.py
 current_dir = os.path.dirname(os.path.abspath(__file__))
-static_path = os.path.join(current_dir, "static")
-if os.path.exists(static_path):
-    app.mount("/static", StaticFiles(directory=static_path), name="static")
+# 2. Соединяем её с папкой static
+static_dir = os.path.join(current_dir, "static")
+
+# 3. Печатаем в консоль при запуске (чтобы ты увидел реальный путь)
+print(f"DEBUG: Пытаюсь подключить статику из: {static_dir}")
+
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+else:
+    print("!!! ОШИБКА: Папка static не найдена по указанному пути !!!")
 
 # Создаем объект для работы с хешированием
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

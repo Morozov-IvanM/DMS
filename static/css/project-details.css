@@ -1,118 +1,121 @@
 /* ==========================================================
-   PROJECT DETAILS: COMMENTS, ATTACHMENTS, SIDEBAR
+   PROJECT DETAILS: DARK THEME (WHITE TEXT & BORDERS)
    ========================================================== */
 
-/* Лента комментариев */
-.comments-feed {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+/* 1. ГЛАВНАЯ КАРТОЧКА ПРОЕКТА */
+.project-detail-card {
+    background-color: #1a1d26 !important; /* Темно-серый */
+    border: 2px solid #303645 !important; /* Четкая серая граница */
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    color: #ffffff !important;
 }
 
+.project-title {
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.project-description {
+    background-color: #242834;
+    border: 1px solid #303645;
+    color: #e2e8f0; /* Почти белый для текста */
+    padding: 1.25rem;
+    border-radius: 12px;
+    line-height: 1.6;
+}
+
+/* 2. КАРТОЧКИ КОММЕНТАРИЕВ */
 .comment-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    transition: all 0.2s;
+    background-color: #1a1d26 !important;
+    border: 2px solid #303645 !important; /* Усиленная граница */
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
     overflow: hidden;
+    transition: border-color 0.2s;
 }
 
 .comment-card:hover {
-    border-color: var(--accent);
-    transform: translateX(4px);
+    border-color: #3b82f6 !important; /* Синий акцент при наведении */
 }
 
 .comment-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 1.25rem;
-    background: rgba(255, 255, 255, 0.02);
-    border-bottom: 1px solid var(--border);
-    flex-wrap: wrap;
-}
-
-.comment-avatar { font-size: 1.5rem; color: var(--accent); }
-.comment-author { font-weight: 700; color: var(--accent); }
-.comment-time { font-size: 0.7rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.25rem; }
-
-.comment-body { padding: 1.25rem; }
-.comment-text { color: var(--text-main); line-height: 1.6; white-space: pre-wrap; margin-bottom: 1rem; }
-
-/* Вложения внутри комментариев */
-.attachments {
-    margin-top: 1rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--border);
-}
-
-.attachments-title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-    display: flex; align-items: center; gap: 0.375rem;
-}
-
-/* Форма добавления комментария */
-.add-comment-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 1.5rem;
-    margin-top: 2rem;
-}
-
-.file-label {
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    padding: 0.5rem 1rem;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    transition: all 0.2s;
-    display: inline-flex; align-items: center; gap: 0.5rem;
-}
-
-.file-label:hover { background: var(--accent); color: #0a0c10; }
-
-/* ПРАВАЯ КОЛОНКА (SIDEBAR) */
-.comment-header-sidebar {
+    background-color: rgba(255, 255, 255, 0.03); 
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid #303645;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
-    flex-wrap: wrap;
-    gap: 0.5rem;
 }
 
-.comment-project {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--accent);
-    background: var(--accent-bg);
-    padding: 0.25rem 0.6rem;
-    border-radius: 20px;
+.comment-author {
+    color: #3b82f6 !important; /* Ярко-синее имя */
+    font-weight: 700;
 }
 
-.recent-comment-item {
-    display: block;
-    padding: 1rem 1.25rem;
+.comment-time {
+    color: #94a3b8 !important; /* Приглушенное время */
+    font-size: 0.8rem;
+}
+
+.comment-body {
+    padding: 1.25rem;
+    color: #ffffff !important; /* БЕЛЫЕ БУКВЫ */
+}
+
+/* 3. ФОРМА ДОБАВЛЕНИЯ КОММЕНТАРИЯ */
+.add-comment-card {
+    background-color: #1a1d26 !important;
+    border: 2px solid #303645 !important;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.custom-textarea {
+    width: 100%;
+    background-color: #242834 !important;
+    border: 1px solid #303645 !important;
+    color: #ffffff !important;
+    border-radius: 10px;
+    padding: 1rem;
+    min-height: 120px;
+}
+
+.custom-textarea:focus {
+    border-color: #3b82f6 !important;
+    outline: none;
+}
+
+/* 4. ВЛОЖЕНИЯ */
+.attachments {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #303645;
+}
+
+.file-link {
+    background-color: #242834;
+    border: 1px solid #303645;
+    color: #3b82f6 !important;
+    padding: 6px 14px;
+    border-radius: 8px;
     text-decoration: none;
-    border-bottom: 1px solid var(--border);
-    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.recent-comment-item:hover { background: var(--accent-bg); }
-
-/* Адаптив */
-@media (max-width: 900px) {
-    .two-columns { flex-direction: column; }
-    .right-column { margin-top: 1.5rem; }
-    .recent-comments-card { position: static; }
+.file-link:hover {
+    background-color: #3b82f6;
+    color: #ffffff !important;
 }
 
-@media (max-width: 640px) {
-    .comment-header { padding: 0.75rem 1rem; }
-    .project-title { font-size: 1.5rem; }
+/* ХЕДЕР ТЕМНЫЙ ФИКС */
+.header {
+    background: #1a1d26 !important;
+    border-bottom: 1px solid #303645 !important;
 }

@@ -143,3 +143,60 @@
         justify-content: center;
     }
 }
+.search-form-header {
+    max-width: 200px;
+}
+
+.search-wrapper-header {
+    display: flex;
+    background: #242834;
+    border: 1px solid #303645;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.search-input-header {
+    background: transparent;
+    border: none;
+    padding: 4px 10px;
+    color: white;
+    font-size: 0.85rem;
+    width: 100%;
+    outline: none;
+}
+
+.search-btn-header {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.search-btn-header:hover {
+    color: #3b82f6;
+}
+/* Кнопка Архив / Назад в хедере */
+.btn-header-link {
+    color: #f59e0b !important; /* Желтый / Золотой цвет текста */
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.1); /* Полупрозрачный желтый фон */
+    border: 1px solid rgba(245, 158, 11, 0.3); /* Тонкая желтая граница */
+    transition: all 0.2s ease;
+}
+
+.btn-header-link:hover {
+    background: #f59e0b !important; /* Насыщенный желтый при наведении */
+    color: #000000 !important;      /* Черный текст для контраста */
+    border-color: #f59e0b;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+/* Иконка внутри кнопки */
+.btn-header-link i {
+    color: inherit;
+}

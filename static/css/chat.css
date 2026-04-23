@@ -210,3 +210,75 @@ div.chat-box div.chat-msg button.chat-admin-delete i {
     background-color: #007bff;
     color: #fff;
 }
+.chat-layout-wrapper {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 1.5rem;
+}
+
+/* Чат занимает 70% */
+.chat-main-section {
+    flex: 7; 
+    min-width: 0;
+}
+
+/* Избранное занимает 30% */
+.chat-favorites-section {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Адаптив: на узких экранах избранное прыгает под чат */
+@media (max-width: 991px) {
+    .chat-layout-wrapper {
+        flex-direction: column;
+    }
+    .chat-favorites-section {
+        order: 2;
+    }
+}
+
+.favorites-list {
+    max-height: 480px;
+    overflow-y: auto;
+}
+
+/* Компактный стиль для полей в узком чате */
+.chat-input-field {
+    font-size: 0.85rem !important;
+}
+
+/* ФОРМА ОТПРАВКИ (Нижняя плашка) */
+.chat-card .card-footer {
+    margin-top: 20px !important;    /* СУЩЕСТВЕННЫЙ ОЦТУП: опускаем форму ниже */
+    border: 1px solid #dee2e6 !important; /* Возвращаем рамку сверху */
+    border-radius: 20px !important;  /* Делаем форму отдельным "островом" */
+    background-color: #ffffff !important;
+    padding: 12px 15px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important; /* Тень для объема */
+}
+
+/* Поле ввода внутри плашки */
+.chat-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa; /* Контрастный фон относительно белого футера */
+    border: 1px solid #e9ecef;
+    border-radius: 24px;
+    padding: 4px 12px;
+    transition: all 0.2s ease;
+}
+
+/* Эффект при наведении/фокусе на поле ввода */
+.chat-input-wrapper:focus-within {
+    background: #ffffff;
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.12);
+}
+
+/* Компактный шрифт для узкого чата */
+.chat-input-field {
+    font-size: 0.9rem !important;
+    color: #333;
+}

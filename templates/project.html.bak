@@ -15,7 +15,31 @@
 </head>
 <body>
     <header class="header">
-        {% include 'partials/header.html' %}
+        <div class="header-content">
+            <a href="/" class="logo-link text-decoration-none">
+                <div class="logo">
+                    <i class="fas fa-code-branch"></i> CMR Safe Region 34
+                </div>
+            </a>
+            <div class="header-actions">
+                <a href="/" class="btn btn-outline-light btn-sm me-2">
+                    <i class="fas fa-arrow-left"></i> Назад
+                </a>
+                {% if project and project[3] == 'Active' %}
+                <form action="/archive-project/{{ project[0] }}/" method="post" style="display:inline;">
+					<button type="submit" class="btn btn-outline-warning btn-sm" title="В архив">
+						<i class="fas fa-archive"></i>
+					</button>
+				</form>
+                {% elif project and project[3] == 'Archived' %}
+                <form action="/project/{{ project[0] }}/restore" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-undo-alt"></i> Восстановить
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
     </header>
 
     <main class="page-container">

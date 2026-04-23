@@ -49,56 +49,9 @@ body {
    Стили для будущей ленты (Reddit-посты)
    ============================================ */
 
-/* Общий контейнер для страницы со списком проектов */
-.page-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 1.5rem;
-}
 
-/* Хедер - на всю ширину, прижат к верху */
-.header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border);
-    padding: 0.75rem 0;
-    z-index: 1000;
-    backdrop-filter: blur(10px);
-    background: rgba(22, 24, 28, 0.95);
-}
 
-/* Контент хедера - центрирован */
-.header-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
 
-/* Основной контейнер страницы - с отступом под хедер */
-.page-container {
-    max-width: 1400px;
-    margin: 80px auto 0 auto;
-    padding: 0 2rem 2rem 2rem;
-}
-
-/* Логотип */
-.logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #fff, var(--accent));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    white-space: nowrap;
-}
 
 /* Контейнер для правых элементов */
 .header-actions {
@@ -186,81 +139,6 @@ body {
     transition: all 0.2s;
 }
 
-.search-wrapper:focus-within {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
-}
-
-.search-icon {
-    margin-left: 0.75rem;
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-}
-
-.search-input {
-    width: 200px;
-    padding: 0.5rem 0.75rem;
-    background: transparent;
-    border: none;
-    color: var(--text-main);
-    font-size: 0.875rem;
-    outline: none;
-}
-
-.search-input::placeholder {
-    color: var(--text-secondary);
-}
-
-.search-btn {
-    background: var(--accent);
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 40px;
-    color: #0a0c10;
-    font-weight: 600;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.search-btn:hover {
-    background: var(--accent-hover);
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.user-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: var(--accent-bg);
-    padding: 0.5rem 1rem;
-    border-radius: 40px;
-    color: var(--accent);
-    font-size: 0.875rem;
-}
-
-.btn-logout {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--danger);
-    padding: 0.5rem 1rem;
-    border-radius: 40px;
-    text-decoration: none;
-    font-size: 0.875rem;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.btn-logout:hover {
-    background: var(--danger);
-    color: white;
-}
 
 .avatar {
     width: 36px;
@@ -274,40 +152,6 @@ body {
     color: #0a0c10;
 }
 
-/* Адаптив для мобильных */
-@media (max-width: 900px) {
-    .header {
-        padding: 0.75rem 1rem;
-    }
-    
-    .header-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .header-actions {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .search-wrapper {
-        width: 100%;
-    }
-    
-    .search-input {
-        width: 100%;
-    }
-    
-    .user-info {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .logo {
-        white-space: normal;
-        text-align: center;
-    }
-}
 
 /* Убираем отступы у body */
 body {
@@ -449,38 +293,7 @@ body {
     gap: 0.5rem;
 }
 
-/* Адаптивность */
-@media (max-width: 640px) {
-    body {
-        padding: 1rem;
-    }
-    
-    .card {
-        padding: 1.5rem;
-    }
-    
-    h2 {
-        font-size: 1.5rem;
-    }
-    
-    .post-card {
-        padding: 1rem;
-    }
-    
-    .post-title {
-        font-size: 1rem;
-    }
-    
-    .header-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .post-actions {
-        flex-wrap: wrap;
-        gap: 0.75rem;
-    }
-}
+
 
 /* Анимации */
 @keyframes fadeIn {
@@ -494,44 +307,9 @@ body {
     }
 }
 
-.card, .post-card {
-    animation: fadeIn 0.3s ease-out;
-}
-
 /* ============================================
             СТИЛИ ДЛЯ PROJECTS.HTML
    ============================================ */
-
-/* Пользовательский бейдж */
-.user-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: var(--accent-bg);
-    padding: 0.5rem 1rem;
-    border-radius: 40px;
-    color: var(--accent);
-    font-size: 0.875rem;
-}
-
-/* Кнопка выхода */
-.btn-logout {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--danger);
-    padding: 0.5rem 1rem;
-    border-radius: 40px;
-    text-decoration: none;
-    font-size: 0.875rem;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.btn-logout:hover {
-    background: var(--danger);
-    color: white;
-}
 
 /* Форма создания проекта */
 .create-card {
@@ -645,46 +423,7 @@ body {
     }
 }
 
-/* Футер */
-.footer {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--border);
-}
 
-.footer-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    flex-wrap: wrap;
-}
-
-/* Адаптив для формы */
-@media (max-width: 768px) {
-    .form-row {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .form-group label {
-        margin-top: 0.5rem;
-    }
-    
-    .form-group:first-child label {
-        margin-top: 0;
-    }
-    
-    .flex-1, .flex-2, .flex-3 {
-        min-width: auto;
-    }
-    
-    .btn-primary {
-        margin-top: 0.5rem;
-    }
-}
 
 /* Анимация для карточек при загрузке */
 .post-card {
@@ -1234,26 +973,6 @@ body {
     margin: 0;
 }
 
-/* Адаптив для хедера */
-@media (max-width: 640px) {
-    .header-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .header-actions {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    
-    .project-meta {
-        gap: 0.5rem;
-    }
-    
-    .comments-count-badge {
-        font-size: 0.65rem;
-    }
-}
 
 /* ============================================
    СТИЛИ ДЛЯ ДВУХКОЛОНОЧНОГО МАКЕТА

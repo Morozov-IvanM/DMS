@@ -17,16 +17,14 @@
 	</div>
 	
 	<div class="header-actions">
-		<!-- 1. Динамическая кнопка: Архив или Назад -->		
-		{% if request.url.path == "/archive" or "/project/" in request.url.path %}
-			<!-- Если мы в архиве или внутри проекта, кнопка ведет на главную -->
-			<a href="/" class="btn-header-link me-3">
-				<i class="fas fa-arrow-left me-1"></i> Назад
+		<!-- 1. Динамическая кнопка: Архив или Назад -->
+		{% if request.url.path == "/archive" %}
+			<a href="/" class="btn-archive-link text-decoration-none">
+				<i class="fas fa-arrow-left"></i> Назад
 			</a>
 		{% else %}
-			<!-- Если мы на главной, кнопка ведет в архив -->
-			<a href="/archive" class="btn-header-link me-3">
-				<i class="fas fa-archive me-1"></i> Архив
+			<a href="/archive" class="btn-archive-link text-decoration-none">
+				<i class="fas fa-archive"></i> Архив
 			</a>
 		{% endif %}
 

@@ -165,6 +165,20 @@ async def admin_auth_page(request: Request):
 app.include_router(admin_router)
 
 
+@app.get("/api/check-access")
+async def check_access(user_name: str = Cookie(None)):
+    if not user_name:
+        return {"access": False}
+
+    decoded_name = unquote(user_name)
+    # Получаем актуальный GroupId из базы
+    user_row = db.run('SELECT "GroupId" FROM public."Users" WHERE "Username" = :u', u=decoded_name)
+
+    if user_row and int(user_row[0][0]) != 0:
+        return {"access": True}  # Доступ разрешен (группа уже не 0)
+
+    return {"access": False}
+
 # --- ГЛАВНАЯ СТРАНИЦА ---
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, user_name: str = Cookie(None), group_id: str = Cookie(None), q: str = ""):

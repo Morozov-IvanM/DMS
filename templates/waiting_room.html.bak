@@ -66,23 +66,5 @@
             </a>
         </div>
     </div>
-	
-	<script>
-		function checkStatus() {
-			fetch('/api/check-access')
-				.then(response => response.json())
-				.then(data => {
-					if (data.access === true) {
-						// Если доступ дали — радостно обновляем страницу
-						console.log("Доступ подтвержден! Перенаправление...");
-						window.location.href = "/"; 
-					}
-				})
-				.catch(err => console.error("Ошибка проверки статуса:", err));
-		}
-
-		// Запускаем проверку каждые 10 секунд (10000 мс)
-		setInterval(checkStatus, 10000);
-	</script>
 </body>
 </html>

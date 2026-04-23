@@ -70,6 +70,24 @@
     {% include 'partials/scripts.html' %}
     
     <!-- Твои скрипты редактирования чата -->
+    <script>
+        function toggleChatEdit(msgId) {
+            const textDiv = document.getElementById(`chat-text-${msgId}`);
+            const editBlock = document.getElementById(`chat-edit-block-${msgId}`);
+            if (editBlock.style.display === 'none') {
+                editBlock.style.display = 'block';
+                textDiv.style.display = 'none';
+                const input = document.getElementById(`edit-input-${msgId}`);
+                input.focus();
+            } else {
+                editBlock.style.display = 'none';
+                textDiv.style.display = 'block';
+            }
+        }
+        // ... (остальные функции без изменений)
+    </script>
+<script>
     
+</script>
 </body>
 </html>

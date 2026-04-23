@@ -18,7 +18,6 @@
 
     <main class="page-container">
         {% if project %}
-		
             <!-- Карточка проекта -->
             <div class="project-detail-card shadow-sm">
                 <div class="project-header">

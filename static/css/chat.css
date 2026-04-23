@@ -372,4 +372,47 @@ div.chat-box div.chat-msg button.chat-admin-delete i {
         resize: none;
     }
 
-    .msg-me .chat-edit-form { color: #333; } /* Текст в поле ввода всегда темный */
+.msg-me .chat-edit-form { color: #333; } /* Текст в поле ввода всегда темный */
+ /* Элемент в списке избранного */
+.fav-item-link {
+    display: flex !important;
+    align-items: center;
+    padding: 12px 15px !important;
+    margin: 8px 10px !important; /* Отступы вокруг каждой ссылки, чтобы не слипались */
+    background: rgba(245, 158, 11, 0.05); /* Едва заметный желтоватый фон */
+    border: 1px solid rgba(245, 158, 11, 0.1); /* Тонкая рамка */
+    border-radius: 10px; /* Скругление углов */
+    color: #f59e0b !important; /* ЖЕЛТЫЙ ЦВЕТ текста */
+    text-decoration: none !important; /* Убираем подчеркивание */
+    transition: all 0.2s ease;
+}
+
+/* Состояние при наведении */
+.fav-item-link:hover {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: #f59e0b;
+    color: #fbbf24 !important; /* Чуть ярче при наведении */
+    transform: translateX(5px); /* Легкий сдвиг вправо */
+}
+
+/* Иконка папки внутри */
+.fav-item-link i.fa-folder {
+    color: #f59e0b !important;
+    margin-right: 12px;
+}
+
+/* Текст названия проекта */
+.fav-item-link span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Если название очень длинное */
+}
+
+/* Иконка стрелочки справа */
+.fav-item-link i.fa-chevron-right {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    margin-left: auto;
+}

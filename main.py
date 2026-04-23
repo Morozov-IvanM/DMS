@@ -172,14 +172,16 @@ async def index(request: Request, user_name: str = Cookie(None), group_id: str =
         return templates.TemplateResponse("login.html", {"request": request})
 
     decoded_name = unquote(user_name)
-    # 1. Берем актуальный GroupId из базы данных (это истина)
-    user_row = db.run('SELECT "GroupId" FROM public."Users" WHERE "Username" = :u', u=decoded_name)
 
-    # Если юзера нет в базе (удалили), кидаем на логин
+    # 1. Получаем данные пользователя (ID и GroupId)
+    user_row = db.run('SELECT "Id", "GroupId" FROM public."Users" WHERE "Username" = :u', u=decoded_name)
+
+    # Если юзера нет в базе (удалили), кидаем на выход
     if not user_row:
         return RedirectResponse(url="/logout", status_code=303)
 
-    actual_g_id = int(user_row[0][0])
+    u_id = int(user_row[0][0])
+    actual_g_id = int(user_row[0][1])
 
     # 2. ЕСЛИ ГРУППА 0 — СРАЗУ ПОКАЗЫВАЕМ ЗАГЛУШКУ
     if actual_g_id == 0:
@@ -188,7 +190,7 @@ async def index(request: Request, user_name: str = Cookie(None), group_id: str =
             "user_name": decoded_name
         })
 
-    # 3. Синхронизация куки (если админ сменил группу в БД, а в браузере старая)
+    # 3. Синхронизация куки группы
     needs_cookie_update = str(group_id) != str(actual_g_id)
     g_id = actual_g_id
 
@@ -196,16 +198,19 @@ async def index(request: Request, user_name: str = Cookie(None), group_id: str =
     group_row = db.run('SELECT "Name" FROM public."Groups" WHERE "Id" = :g', g=g_id)
     group_name = group_row[0][0] if group_row else f"Отдел №{g_id}"
 
+    # 5. ПОЛУЧАЕМ ИЗБРАННЫЕ ПРОЕКТЫ ПОЛЬЗОВАТЕЛЯ
+    fav_projects = db.run('''
+        SELECT p."Id", p."Name" 
+        FROM public."Projects" p
+        JOIN public."UserFavorites" f ON p."Id" = f."ProjectId"
+        WHERE f."UserId" = :uid AND p."Status" = 'Active'
+        ORDER BY p."Name" ASC
+    ''', uid=u_id)
 
-    # 2. Проверяем, нужно ли обновить куку в браузере (если в БД группа уже другая)
-    needs_cookie_update = str(group_id) != str(actual_g_id)
-    g_id = actual_g_id
+    # Список ID избранных проектов для отрисовки закрашенных звезд в общем списке
+    my_fav_ids = [p[0] for p in fav_projects]
 
-    # 3. Получаем название группы
-    group_row = db.run('SELECT "Name" FROM public."Groups" WHERE "Id" = :g', g=g_id)
-    group_name = group_row[0][0] if group_row else f"Группа {g_id}"
-
-    # 4. Поиск или список проектов
+    # 6. Поиск или основной список проектов группы
     if q:
         projects = db.run('''
                 SELECT "Id", "Name", "Description" FROM public."Projects" 
@@ -217,7 +222,7 @@ async def index(request: Request, user_name: str = Cookie(None), group_id: str =
                 WHERE "Status" = 'Active' AND "GroupId" = :g 
                 ORDER BY "Id" DESC''', g=g_id)
 
-    # 5. Последние комментарии в этой группе
+    # 7. Последние комментарии в этой группе
     last_comments = db.run('''
         SELECT c."Text", c."AuthorName", p."Name", c."ProjectId" 
         FROM public."Comments" c
@@ -226,7 +231,7 @@ async def index(request: Request, user_name: str = Cookie(None), group_id: str =
         ORDER BY c."CreatedAt" DESC LIMIT 5
     ''', g=g_id)
 
-    # 6. Чат группы
+    # 8. Чат группы
     raw_chat_messages = db.run('''
                 SELECT c."Id", c."AuthorName", c."Message", c."CreatedAt", a."Id", a."FileName"
                 FROM public."GlobalChat" c
@@ -237,11 +242,11 @@ async def index(request: Request, user_name: str = Cookie(None), group_id: str =
 
     chat_messages = [(r[0], r[1], r[2], format_time(r[3]), r[4], r[5]) for r in raw_chat_messages]
 
-    # 7. Список пользователей этой группы (для подсказок)
+    # 9. Список пользователей группы (для меншенов)
     user_list = [row[0] for row in db.run('''
             SELECT "Username" FROM public."Users" WHERE "GroupId" = :g''', g=g_id)]
 
-    # 8. Формируем ответ
+    # 10. Формируем ответ
     response = templates.TemplateResponse("index.html", {
         "request": request,
         "projects": projects,
@@ -250,15 +255,16 @@ async def index(request: Request, user_name: str = Cookie(None), group_id: str =
         "search_query": q,
         "last_comments": last_comments,
         "chat_messages": chat_messages,
-        "user_list": user_list
+        "user_list": user_list,
+        "fav_projects": fav_projects,  # Передаем в правую колонку чата
+        "my_fav_ids": my_fav_ids  # Передаем для проверки звезд в списке
     })
 
-    # Если группа в базе сменилась, принудительно обновляем куку пользователю
+    # Если группа в базе сменилась, обновляем куку
     if needs_cookie_update:
         response.set_cookie(key="group_id", value=str(g_id), httponly=True)
 
     return response
-
 
 # --- API ЖИВОГО ЧАТА ---
 @app.post("/api/chat/send")
@@ -434,6 +440,41 @@ async def edit_comment(c_id: int, p_id: int = Form(...), text: str = Form(...), 
            cur=author)
     return RedirectResponse(url=f"/project/{p_id}", status_code=303)
 
+
+@app.post("/api/projects/{p_id}/favorite")
+async def toggle_project_favorite(p_id: int, user_name: str = Cookie(None)):
+    if not user_name:
+        return {"success": False, "error": "Нужна авторизация"}
+
+    decoded_name = unquote(user_name)
+
+    # 1. Достаем ID пользователя.
+    user_data = db.run('SELECT "Id" FROM public."Users" WHERE "Username" = :u', u=decoded_name)
+
+    if not user_data or len(user_data) == 0:
+        return {"success": False, "error": "Пользователь не найден"}
+
+    # ИСПРАВЛЕНИЕ ТУТ: берем первый элемент первого списка
+    # user_data выглядит как [[1]], поэтому берем [0][0]
+    u_id = int(user_data[0][0])
+
+    # 2. Проверяем наличие в избранном
+    # Обрати внимание, здесь u_id и p_id теперь чистые числа
+    exists = db.run('''
+        SELECT 1 FROM public."UserFavorites" 
+        WHERE "UserId" = :uid AND "ProjectId" = :pid
+    ''', uid=u_id, pid=p_id)
+
+    if exists and len(exists) > 0:
+        db.run('DELETE FROM public."UserFavorites" WHERE "UserId" = :uid AND "ProjectId" = :pid',
+               uid=u_id, pid=p_id)
+        status = "removed"
+    else:
+        db.run('INSERT INTO public."UserFavorites" ("UserId", "ProjectId") VALUES (:uid, :pid)',
+               uid=u_id, pid=p_id)
+        status = "added"
+
+    return {"success": True, "status": status}
 
 @app.get("/archive", response_class=HTMLResponse)
 async def archive_index(request: Request, user_name: str = Cookie(None), group_id: str = Cookie(None), q: str = ""):

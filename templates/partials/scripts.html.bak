@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (hideCross) hideCross.addEventListener('click', hideForm);
     }
 });
-
+</script>
 function toggleFavorite(projectId, btn) {
     // Отправляем запрос на сервер
     fetch(`/api/projects/${projectId}/favorite`, { 
@@ -75,4 +75,4 @@ function toggleFavorite(projectId, btn) {
     })
     .catch(err => console.error("Ошибка избранного:", err));
 }
-</script>
+

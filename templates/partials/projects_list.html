@@ -36,8 +36,11 @@
                 </a>
 
                 <!-- КНОПКА ИЗБРАННОЕ (Звездочка) -->
-                <button class="favorite-btn" onclick="toggleFavorite({{ p[0] }}, this)" title="В избранное">
-                    <i class="far fa-star"></i>
+                <!-- Проверяем, есть ли ID проекта p[0] в списке my_fav_ids -->
+                <button class="favorite-btn {% if p[0] in my_fav_ids %}active{% endif %}" 
+                        onclick="toggleFavorite({{ p[0] }}, this)" 
+                        title="{% if p[0] in my_fav_ids %}Убрать из избранного{% else %}В избранное{% endif %}">
+                    <i class="{% if p[0] in my_fav_ids %}fas{% else %}far{% endif %} fa-star"></i>
                 </button>
             </div>
             {% endfor %}

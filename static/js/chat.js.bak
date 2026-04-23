@@ -138,3 +138,24 @@ window.addEventListener('load', () => {
     if (urlParams.get('success') === 'password_changed') alert("Пароль обновлен!");
     if (urlParams.get('error') === 'wrong_old_password') alert("Старый пароль неверен!");
 });
+// Сообщение исчезает мгновенно без перезагрузки страницы.
+function confirmDeleteMessage(msgId, btn) {
+    if (!confirm("Удалить это сообщение?")) return;
+
+    fetch(`/admin/delete-chat-message/${msgId}`, {
+        method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Находим ближайший контейнер сообщения и удаляем его
+            const msgElement = btn.closest('.chat-msg');
+            msgElement.style.transition = '0.3s';
+            msgElement.style.opacity = '0';
+            setTimeout(() => msgElement.remove(), 300);
+        } else {
+            alert("Ошибка: " + data.error);
+        }
+    })
+    .catch(err => console.error("Ошибка удаления:", err));
+}

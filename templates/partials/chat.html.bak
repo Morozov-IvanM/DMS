@@ -1,5 +1,5 @@
-<div class="chat-layout-wrapper">
-    <!-- ЛЕВАЯ КОЛОНКА: ЧАТ (Узкий) -->
+<div class="chat-layout-wrapper">   
+   <!-- ЛЕВАЯ КОЛОНКА: ЧАТ -->
     <div class="chat-main-section">
         <div class="card chat-card shadow-sm border-0">
             <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
@@ -12,30 +12,56 @@
                 </span>
             </div>
             
-            <div class="card-body chat-box" id="chat-window" style="height: 400px; overflow-y: auto; background: #f0f2f5; display: flex; flex-direction: column; gap: 10px; padding: 15px;">
+            <div class="card-body chat-box" id="chat-window" style="height: 400px; overflow-y: auto; background: #f0f2f5; display: flex; flex-direction: column; gap: 12px; padding: 15px;">
                 {% if chat_messages %}
                     {% for msg in chat_messages|reverse %}
-                    <div class="chat-msg {% if msg[1] == user_name %}msg-me{% else %}msg-other{% endif %} shadow-sm">
-                        <span class="chat-author">{{ msg[1] }}</span>
+                    <div class="chat-msg {% if msg[1] == user_name %}msg-me{% else %}msg-other{% endif %} shadow-sm" id="msg-container-{{ msg[0] }}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="chat-author fw-bold" style="font-size: 0.85rem;">{{ msg[1] }}</span>
+                            
+                            <div class="chat-actions d-flex align-items-center gap-2">
+                                <!-- Кнопка редактирования (только для своих) -->
+                                {% if msg[1] == user_name %}
+                                <button type="button" class="btn-chat-edit border-0" 
+                                        onclick="toggleChatEdit('{{ msg[0] }}')" title="Редактировать">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                {% endif %}
+
+                                <!-- Кнопка удаления (админ) -->
+                                {% if user_name == "Администратор" %}
+                                <button type="button" class="chat-admin-delete border-0 bg-transparent p-0" 
+                                        onclick="confirmDeleteMessage({{ msg[0] }}, this)" title="УДАЛИТЬ">
+                                    <i class="fas fa-trash-alt" style="font-size: 0.8rem; color: #dc3545; opacity: 0.6;"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
                         
-                        {% if user_name == "Администратор" %}
-                        <button type="button" class="chat-admin-delete" 
-                                onclick="confirmDeleteMessage({{ msg[0] }}, this)"
-                                title="УДАЛИТЬ">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                        <!-- Контент сообщения -->
+                        <div class="chat-text" id="chat-text-{{ msg[0] }}">{{ msg[2] }}</div>
+
+                        <!-- УЛУЧШЕННАЯ ФОРМА РЕДАКТИРОВАНИЯ -->
+                        {% if msg[1] == user_name %}
+                        <div id="chat-edit-block-{{ msg[0] }}" style="display: none;" class="animate-edit">
+                            <div class="chat-edit-container">
+                                <textarea class="form-control" id="edit-input-{{ msg[0] }}" rows="3">{{ msg[2] }}</textarea>
+                                <div class="d-flex justify-content-end align-items-center gap-1">
+                                    <button class="edit-btn-cancel" onclick="toggleChatEdit('{{ msg[0] }}')">Отмена</button>
+                                    <button class="edit-btn-save shadow-sm" onclick="saveChatEdit('{{ msg[0] }}')">Сохранить</button>
+                                </div>
+                            </div>
+                        </div>
                         {% endif %}
-                        
-                        <div class="chat-text">{{ msg[2] }}</div>
                         
                         {% if msg[4] %}
                         <div class="chat-file-attachment mt-2 pt-1 border-top border-light-subtle">
                             <a href="/download_chat/{{ msg[4] }}" target="_blank" class="text-decoration-none small">
-                                <i class="fas fa-paperclip"></i> {{ msg[5] }}
+                                <i class="fas fa-paperclip me-1"></i> {{ msg[5] }}
                             </a>
                         </div>
                         {% endif %}
-                        <span class="chat-time text-muted">{{ msg[3] }}</span>
+                        <span class="chat-time text-muted d-block mt-1 text-end" style="font-size: 0.65rem;">{{ msg[3] }}</span>
                     </div>
                     {% endfor %}
                 {% else %}
@@ -47,7 +73,7 @@
             </div>
 
             <!-- ФОРМА ОТПРАВКИ -->
-            <div class="card-footer bg-white border-top-0 py-3">
+            <div class="card-footer bg-white border-top-0 py-3 mt-3 shadow-sm" style="border-radius: 0 0 20px 20px;">
                 <form id="chat-form-js" enctype="multipart/form-data">
                     <div class="chat-input-wrapper">
                         <label class="chat-attach-btn" for="chat-file">
@@ -70,17 +96,16 @@
         </div>
     </div>
 
-    <!-- ПРАВАЯ КОЛОНКА: ИЗБРАННОЕ -->
+    <!-- ПРАВАЯ КОЛОНКА -->
     <div class="chat-favorites-section">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white py-3 border-bottom">
                 <span class="fw-bold small text-uppercase text-muted" style="letter-spacing: 0.5px;">
-                    <i class="fas fa-star text-warning me-2"></i> Избранные проекты
+                    <i class="fas fa-star text-warning me-2"></i> Избранные проекты Chat.html
                 </span>
             </div>
             <div class="card-body p-0">
                 <div class="favorites-list">
-                    <!-- Заглушка для проектов -->
                     <div class="text-center py-5 px-3">
                         <i class="fas fa-folder-plus text-muted opacity-25 mb-2" style="font-size: 2rem;"></i>
                         <p class="small text-muted">Нажмите на ⭐ в проекте, чтобы добавить его сюда</p>
@@ -91,4 +116,51 @@
     </div>
 </div>
 
-<div id="mention-list" class="list-group shadow" style="display:none; position:absolute; z-index:1000;"></div>
+<script>
+function toggleChatEdit(msgId) {
+    const textDiv = document.getElementById(`chat-text-${msgId}`);
+    const editBlock = document.getElementById(`chat-edit-block-${msgId}`);
+    
+    if (editBlock.style.display === 'none') {
+        editBlock.style.display = 'block';
+        textDiv.style.display = 'none';
+        const input = document.getElementById(`edit-input-${msgId}`);
+        input.focus();
+        input.selectionStart = input.selectionEnd = input.value.length;
+    } else {
+        editBlock.style.display = 'none';
+        textDiv.style.display = 'block';
+    }
+}
+
+async function saveChatEdit(msgId) {
+    const textarea = document.getElementById(`edit-input-${msgId}`);
+    const saveBtn = event.target; // Кнопка, на которую нажали
+    const newText = textarea.value;
+    
+    if (!newText.trim()) return;
+
+    saveBtn.disabled = true;
+    saveBtn.innerText = "...";
+
+    try {
+        const response = await fetch(`/chat/message/${msgId}/edit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ 'text': newText })
+        });
+
+        if (response.ok) {
+            document.getElementById(`chat-text-${msgId}`).innerText = newText;
+            toggleChatEdit(msgId);
+        } else {
+            alert("Ошибка сохранения");
+        }
+    } catch (e) {
+        console.error("Ошибка:", e);
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Сохранить";
+    }
+}
+</script>

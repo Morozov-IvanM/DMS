@@ -2,94 +2,81 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CMR — Архив группы</title>
-	<link rel="stylesheet" href="/static/css/bootstrap.min.css">
-	<link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
-	<link rel="stylesheet" href="/static/css/base.css">    <!-- Тут твои переменные :root -->
-	<link rel="stylesheet" href="/static/css/layout.css">  <!-- ТОЛЬКО ЧТО СОЗДАННЫЙ -->
-	<link rel="stylesheet" href="/static/css/chat.css">
+    <title>Архив проектов | CMR</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='fontawesome/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/projects.css') }}">
 </head>
-<body class="bg-light">
-    <!-- 1. Хедер (автоматически подхватит имя и группу из контекста) -->
-    <header class="header">
-        {% include 'partials/header.html' %}
-    </header>
+<body class="bg-page"> <!-- Используем переменную фона из base.css -->
+    
+    {% include 'partials/header.html' %}
 
-    <div class="page-container container mt-4">
-        <!-- 2. Герой-секция архива -->
-        <div class="archive-hero shadow-sm rounded-3 p-4 mb-4 text-white" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%);">
+    <main class="page-container">
+        <!-- Герой-секция архива в темном стиле -->
+        <div class="archive-hero shadow-sm rounded-4 p-4 mb-4 text-white" style="background: linear-gradient(135deg, #1a1d26 0%, #242834 100%); border: 1px solid #303645;">
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
-                    <div class="archive-hero-icon me-4" style="font-size: 3.5rem; opacity: 0.8;">
+                    <div class="archive-hero-icon me-4 text-secondary" style="font-size: 3rem;">
                         <i class="fas fa-archive"></i>
                     </div>
-                    <div class="archive-hero-content">
-                        <h1 class="h2 mb-1 fw-bold">Архив проектов</h1>
-                        <p class="mb-0 opacity-75">История завершённых задач вашей группы.</p>
+                    <div>
+                        <h1 class="h3 mb-1 fw-bold">Архив проектов</h1>
+                        <p class="mb-0 text-white-50">История завершённых задач вашей группы.</p>
                     </div>
                 </div>
-                <div class="archive-stats text-center border-start ps-4">
-                    <div class="stat-item">
-                        <div class="stat-value h2 mb-0 fw-bold">{{ projects|length }}</div>
-                        <div class="stat-label small text-uppercase opacity-75" style="letter-spacing: 1px;">Завершено</div>
-                    </div>
+                <div class="archive-stats text-center border-start border-secondary ps-4">
+                    <div class="stat-value h3 mb-0 fw-bold text-warning">{{ projects|length }}</div>
+                    <div class="stat-label small text-uppercase text-white-50">Завершено</div>
                 </div>
             </div>
         </div>
 
-        <!-- 3. Сетка проектов или пустое состояние -->
-        <div class="archive-grid">
-            {% if projects %}
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    {% for p in projects %}
-                    <div class="col">
-                        <a href="/project/{{ p[0] }}" class="text-decoration-none h-100 d-block">
-                            <div class="card h-100 shadow-sm border-0 project-grid-card hover-lift">
-                                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 px-3">
-                                    <span class="badge bg-light text-dark border small">#{{ p[0] }}</span>
-                                    <span class="badge bg-secondary-subtle text-secondary small px-2">
-                                        <i class="fas fa-history me-1"></i> Архив
-                                    </span>
-                                </div>
-                                <div class="card-body px-3 py-2">
-                                    <h5 class="card-title text-dark fw-bold mb-2">{{ p[1] }}</h5>
-                                    <p class="card-text text-muted small mb-0">
-                                        {{ p[2][:100] + '...' if p[2] and p[2]|length > 100 else p[2] or 'Описание отсутствует' }}
-                                    </p>
-                                </div>
-                                <div class="card-footer bg-transparent border-0 pb-3 px-3 text-muted small">
-                                    <i class="fas fa-calendar-check me-1"></i> Закрыт: {{ p[3] }}
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <!-- Интеллектуальная заглушка -->
-                <div class="card border-0 shadow-sm text-center p-5 mt-4 bg-white">
-                    <div class="card-body">
-                        {% if search_query %}
-                            <i class="fas fa-search-minus fa-4x text-muted mb-3 opacity-25"></i>
-                            <h3 class="fw-bold text-dark">Ничего не нашли</h3>
-                            <p class="text-muted">По запросу «<strong>{{ search_query }}</strong>» в архиве группы пусто.</p>
-                            <a href="/archive" class="btn btn-primary btn-sm mt-2 px-4 rounded-pill shadow-sm">Сбросить поиск</a>
-                        {% else %}
-                            <i class="fas fa-box-open fa-4x text-muted mb-3 opacity-25"></i>
-                            <h3 class="fw-bold text-dark">Архив пока пуст</h3>
-                            <p class="text-muted">Здесь будут отображаться завершенные проекты вашей группы.</p>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
-        </div>
+		<!-- Контейнер архива в две колонки -->
+		<div class="archive-grid-container">
+			{% if projects %}
+				{% for p in projects %}
+				<a href="/project/{{ p[0] }}" class="project-link">
+					<div class="project-grid-card h-100"> <!-- h-100 чтобы карточки в ряду были одной высоты -->
+						<div class="project-card-header">
+							<span class="project-id-badge">#{{ p[0] }}</span>
+							<span class="badge bg-secondary border border-secondary-subtle">
+								<i class="fas fa-history me-1"></i>Архив
+							</span>
+						</div>
+						
+						<h4 class="project-card-title">{{ p[1] }}</h4>
+						
+						<p class="project-card-description">
+							{{ p[2][:100] + '...' if p[2] and p[2]|length > 100 else p[2] or 'Описание отсутствует' }}
+						</p>
+						
+						<div class="project-card-footer mt-auto"> <!-- mt-auto прижмет футер вниз -->
+							<span class="card-action text-muted">
+								<i class="fas fa-eye me-1"></i> Детали
+							</span>
+							<span class="ms-auto small text-muted">
+								<i class="fas fa-calendar-check me-1"></i> {{ p[3] }}
+							</span>
+						</div>
+					</div>
+				</a>
+				{% endfor %}
+			{% else %}
+				<!-- Заглушка (на всю ширину) -->
+				<div class="empty-state-card w-100" style="grid-column: 1 / -1;">
+					<i class="fas fa-box-open mb-3 opacity-25" style="font-size: 4rem;"></i>
+					<h3 class="text-white-50">Архив пока пуст</h3>
+				</div>
+			{% endif %}
+		</div>
+		
+		
+    </main>
 
-        <!-- 4. Футер -->
-        {% include 'partials/footer.html' %}
-    </div>
-
-    <!-- 5. Скрипты -->
+    {% include 'partials/footer.html' %}
     {% include 'partials/scripts.html' %}
 </body>
 </html>

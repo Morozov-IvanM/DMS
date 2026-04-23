@@ -4,45 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CMR — Лента проектов</title>
-    <!-- 1. Библиотеки -->
+    <!-- Библиотеки и стили (порядок верный) -->
     <link rel="stylesheet" href="{{ url_for('static', path='css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='fontawesome/css/all.min.css') }}"> 
-    <!-- 2. Глобальные стили (Цвета, Хедер, Сетка) -->
     <link rel="stylesheet" href="{{ url_for('static', path='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/layout.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/components.css') }}">  
-    <!-- 3. Стили конкретной страницы -->
     <link rel="stylesheet" href="{{ url_for('static', path='css/projects.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/chat.css') }}">
 </head>
 <body>		
-	<!-- Хедер --> 
-	<header class="header">
+    <!-- Хедер (убираем лишний тег header, так как он внутри include) -->
     {% include 'partials/header.html' %}    
-    </header>
-																
-	{% include 'partials/chat.html' %}
-		
+
     <div class="page-container">
-        <!-- Форма создания проекта -->
-		{% include 'partials/create_project_form.html' %}
-        <!-- Основной контент: две колонки -->
-        <div class="two-columns">
-			<div class="left-column">
-            <!-- Левая колонка: список проектов -->
-            {% include 'partials/projects_list.html' %}
-			</div>
-            <!-- Правая колонка: последние комментарии -->
-            <div class="right-column">
-			{% include 'partials/recent_comments.html' %}
-			</div>
+        
+        <!-- БЛОК ЧАТА И ИЗБРАННОГО (теперь в две колонки) -->
+        <div class="chat-layout-wrapper">
+            <div class="chat-main-section">
+                {% include 'partials/chat.html' %}
+            </div>           
+            <div class="chat-favorites-section">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <span class="fw-bold small text-uppercase text-muted">
+                            <i class="fas fa-star text-warning me-2"></i> Избранные проекты
+                        </span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="favorites-list" id="favorites-container">
+                            <!-- Сюда позже выведем список избранных -->
+                            <div class="text-center py-5 text-muted small">
+                                <i class="fas fa-folder-plus opacity-25 mb-2 fa-2x"></i>
+                                <p>Здесь будет список<br>ваших важных проектов</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Футер -->
-    {% include 'partials/footer.html' %}
+        <!-- Форма создания проекта -->
+        {% include 'partials/create_project_form.html' %}
+
+        <!-- Основной контент: Лента проектов и Комментарии -->
+        <div class="two-columns">
+            <div class="left-column">
+                {% include 'partials/projects_list.html' %}
+            </div>
+            <div class="right-column">
+                {% include 'partials/recent_comments.html' %}
+            </div>
+        </div>
+
+        {% include 'partials/footer.html' %}
     </div>
 	
- <!-- 5. Общие скрипты -->
     {% include 'partials/scripts.html' %}
+    
+    <!-- Твои скрипты редактирования чата -->
+    <script>
+        function toggleChatEdit(msgId) {
+            const textDiv = document.getElementById(`chat-text-${msgId}`);
+            const editBlock = document.getElementById(`chat-edit-block-${msgId}`);
+            if (editBlock.style.display === 'none') {
+                editBlock.style.display = 'block';
+                textDiv.style.display = 'none';
+                const input = document.getElementById(`edit-input-${msgId}`);
+                input.focus();
+            } else {
+                editBlock.style.display = 'none';
+                textDiv.style.display = 'block';
+            }
+        }
+        // ... (остальные функции без изменений)
+    </script>
 </body>
 </html>

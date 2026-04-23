@@ -2,7 +2,7 @@ import os
 import uuid
 import shutil
 from fastapi import FastAPI, Request, UploadFile, File, Form, Response, Cookie, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse,JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from urllib.parse import quote, unquote
@@ -325,6 +325,22 @@ async def api_get_messages(last_id: int = 0, group_id: str = Cookie(None)):
         } for r in rows
     ]}
 
+
+@app.post("/chat/message/{msg_id}/edit")
+async def edit_chat_message(msg_id: int, text: str = Form(...), user_name: str = Cookie(None)):
+    if not user_name:
+        return JSONResponse({"status": "error"}, status_code=401)
+
+    author = unquote(user_name)
+
+    # Обновляем только если ID и Автор совпадают (защита от подмены)
+    db.run("""
+        UPDATE public."GlobalChat"
+        SET "Message" = :t 
+        WHERE "Id" = :m_id AND "AuthorName" = :auth
+    """, t=text, m_id=msg_id, auth=author)
+
+    return {"status": "ok"}
 
 # --- ПРОЕКТЫ И КОММЕНТАРИИ ---
 @app.get("/project/{p_id}", response_class=HTMLResponse)

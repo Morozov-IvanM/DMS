@@ -2,24 +2,38 @@
    ЛЕНТА ПРОЕКТОВ И БОКОВАЯ ПАНЕЛЬ (Светлая тема)
    ========================================================== */
 
-/* 1. Сетка (Две колонки) */
 .two-columns {
-    display: flex;
-    gap: 24px;
+    display: flex !important;
+    gap: 20px;           /* Такой же отступ, как у чата */
     align-items: flex-start;
+    width: 100%;
+    margin-top: 2rem;
 }
 
+/* Левая колонка (Проекты) — 70% */
 .left-column {
-    flex: 2.5; /* Лента проектов шире */
-    min-width: 0;
+    flex: 7 !important;
+    min-width: 0;        /* Защита от распирания контентом */
 }
 
+/* Правая колонка (Комментарии) — 30% */
 .right-column {
-    flex: 1; /* Боковая панель уже */
-    position: sticky;
+    flex: 3 !important;
+    min-width: 250px;    /* Чтобы колонка не становилась слишком узкой */
+    position: sticky;    /* Чтобы комментарии "ехали" за скроллом */
     top: 100px;
 }
 
+/* Адаптив для планшетов и телефонов */
+@media (max-width: 992px) {
+    .two-columns {
+        flex-direction: column;
+    }
+    .right-column {
+        width: 100%;
+        position: static;
+    }
+}
 /* 2. Карточка проекта в ленте */
 .project-grid-card {
     background: #ffffff !important;
@@ -152,4 +166,30 @@
 /* Фикс для ссылки, чтобы кнопка была доступна */
 .position-relative:hover .favorite-btn {
     opacity: 1;
+}
+/* Сетка архива в две колонки */
+.archive-grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Ровно две колонки */
+    gap: 20px; /* Расстояние между карточками */
+    margin-bottom: 2rem;
+}
+
+/* Фикс для того, чтобы карточка тянулась по высоте сетки */
+.archive-grid-container .project-link {
+    display: flex;
+}
+
+.archive-grid-container .project-grid-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 0; /* Убираем нижний отступ, так как есть gap */
+}
+
+/* Адаптив: на экранах меньше 992px переходим в одну колонку */
+@media (max-width: 992px) {
+    .archive-grid-container {
+        grid-template-columns: 1fr;
+    }
 }

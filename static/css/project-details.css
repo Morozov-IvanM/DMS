@@ -194,3 +194,12 @@
     background: #1a1d26 !important;
     border-bottom: 1px solid #303645 !important;
 }
+.custom-textarea {
+    background-color: #242834 !important;
+    border: 1px solid #3b82f6 !important; /* Выделяем рамку при правке */
+    color: #ffffff !important;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 0.95rem;
+    resize: none;
+}

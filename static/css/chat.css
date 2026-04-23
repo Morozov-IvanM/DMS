@@ -211,9 +211,10 @@ div.chat-box div.chat-msg button.chat-admin-delete i {
     color: #fff;
 }
 .chat-layout-wrapper {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 1.5rem;
+    display: flex !important;   /* Включаем колонки */
+    gap: 20px;                  /* Расстояние между ними */
+    margin-bottom: 2rem;
+    align-items: stretch;       /* Растягиваем блоки по высоте */
 }
 
 /* Чат занимает 70% */
@@ -226,22 +227,24 @@ div.chat-box div.chat-msg button.chat-admin-delete i {
 .chat-favorites-section {
     flex: 3;
     display: flex;
+}
+.chat-favorites-section .card {
+    width: 100%; /* Растягиваем на всю ширину колонки */
+    height: 100%; /* Растягиваем на всю доступную высоту чата */
+    display: flex;
     flex-direction: column;
 }
-
-/* Адаптив: на узких экранах избранное прыгает под чат */
-@media (max-width: 991px) {
-    .chat-layout-wrapper {
-        flex-direction: column;
-    }
-    .chat-favorites-section {
-        order: 2;
-    }
+/* Адаптив:Для мобильных устройств — в одну колонку */
+@media (max-width: 992px) {
+.chat-layout-wrapper {
+	flex-direction: column;
+}
 }
 
 .favorites-list {
-    max-height: 480px;
-    overflow-y: auto;
+    flex: 1; /* Занимает всё пространство внутри карточки избранного */
+    overflow-y: auto; /* Если проектов будет много, появится скролл внутри */
+    max-height: 500px; /* Можно убрать или увеличить, так как теперь высота зависит от чата */
 }
 
 /* Компактный стиль для полей в узком чате */
@@ -282,3 +285,91 @@ div.chat-box div.chat-msg button.chat-admin-delete i {
     font-size: 0.9rem !important;
     color: #333;
 }
+/* Стиль кнопки редактирования */
+.btn-chat-edit {
+    color: #0d6efd;
+    background: rgba(13, 110, 253, 0.08); /* Легкий синий фон */
+    border-radius: 5px;
+    padding: 2px 6px;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+.btn-chat-edit:hover {
+    opacity: 1;
+    background: rgba(13, 110, 253, 0.2);
+    transform: scale(1.1);
+}
+
+/* Форма редактирования */
+.chat-edit-form {
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    margin-top: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.chat-edit-form textarea {
+    border: none;
+    resize: none;
+    padding: 5px;
+    font-size: 0.9rem;
+}
+
+.chat-edit-form textarea:focus {
+    box-shadow: none;
+    outline: none;
+}
+/* Кнопка редактирования (синяя) */
+    .btn-chat-edit {
+        position: absolute !important;
+        top: -10px !important;
+        right: 25px !important; /* Смещена левее кнопки удаления */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 28px !important;
+        height: 28px !important;
+        background-color: #007bff !important;
+        color: #ffffff !important;
+        border: 2px solid #ffffff !important;
+        border-radius: 50% !important;
+        z-index: 9999 !important;
+        cursor: pointer !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+        padding: 0 !important;
+        transition: transform 0.2s ease;
+    }
+
+    .btn-chat-edit:hover {
+        transform: scale(1.1);
+        background-color: #0056b3 !important;
+    }
+
+    .btn-chat-edit i {
+        font-size: 10px !important;
+        color: #ffffff !important;
+    }
+
+    /* Адаптация формы под темный/светлый фон сообщений */
+    .chat-edit-form {
+        background: #ffffff !important;
+        border-radius: 12px;
+        padding: 8px;
+        margin-top: 10px;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .chat-edit-form textarea {
+        width: 100%;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 8px;
+        font-size: 0.9rem;
+        color: #333;
+        resize: none;
+    }
+
+    .msg-me .chat-edit-form { color: #333; } /* Текст в поле ввода всегда темный */

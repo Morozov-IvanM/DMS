@@ -13,12 +13,37 @@
     <link rel="stylesheet" href="{{ url_for('static', path='css/project-details.css') }}">
 </head>
 <body>
-    <!-- Подключаем единый хедер -->
     {% include 'partials/header.html' %}
 
     <main class="page-container">
         {% if project %}
-		
+            <!-- Панель управления проектом -->
+            <div class="d-flex justify-content-between align-items-center mb-4">               
+                {% if project[3] == 'Active' %}
+                    <!-- Красная кнопка архивации -->
+                    <form action="/archive-project/{{ project[0] }}/" method="post" onsubmit="return confirm('Завершить проект и отправить в архив?');">
+                        <button type="submit" class="btn-finish-project">
+                            <div class="btn-content">
+                                <i class="fas fa-check-double"></i>
+                                <span>Завершить и архивировать</span>
+                            </div>
+                            <div class="btn-shine"></div>
+                        </button>
+                    </form>
+                {% else %}
+                    <!-- Зеленая кнопка восстановления -->
+                    <form action="/project/{{ project[0] }}/restore" method="post" onsubmit="return confirm('Вернуть проект в работу?');">
+                        <button type="submit" class="btn-restore-project">
+                            <div class="btn-content">
+                                <i class="fas fa-undo-alt"></i>
+                                <span>Вернуть в работу</span>
+                            </div>
+                            <div class="btn-shine"></div>
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+
             <!-- Карточка проекта -->
             <div class="project-detail-card shadow-sm">
                 <div class="project-header">
@@ -35,7 +60,7 @@
                     </div>
                 </div>
                 <div class="project-description mt-3">
-                    <p class="mb-0">{{ project[2] if project[2] else 'Описание отсутствует' }}</p>
+                    <p class="mb-0 text-white">{{ project[2] if project[2] else 'Описание отсутствует' }}</p>
                 </div>
             </div>
 
@@ -44,23 +69,15 @@
             <div class="project-comment-input-area mb-5">
                 <form action="/project/{{ project[0] }}/comment" method="post" enctype="multipart/form-data">
                     <div class="chat-input-wrapper shadow-sm">
-                        <!-- Скрепка -->
                         <label class="chat-attach-btn" for="comment-file" title="Приложить документ">
                             <i class="fas fa-paperclip"></i>
                             <input type="file" name="file" id="comment-file" style="display:none" onchange="showProjectFilePreview(this)">
                         </label>
-
-                        <!-- Поле ввода текста -->
-                        <input type="text" name="text" class="chat-input-field" 
-                               placeholder="Написать комментарий в проект..." required autocomplete="off">
-
-                        <!-- Кнопка отправить -->
+                        <input type="text" name="text" class="chat-input-field" placeholder="Написать комментарий в проект..." required autocomplete="off">
                         <button class="chat-send-btn" type="submit">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
-                    
-                    <!-- Предпросмотр выбранного файла -->
                     <div id="project-file-preview" class="file-preview-bar shadow-sm" style="display:none; margin-top: 10px; background: #3b82f6; color: white; padding: 5px 15px; border-radius: 10px;">
                         <div class="d-flex align-items-center justify-content-between w-100">
                             <span id="project-file-name" class="small text-truncate me-2"></span>
@@ -71,7 +88,7 @@
             </div>
             {% endif %}
 				
-            <!-- Секция комментариев -->
+            <!-- Секция обсуждения -->
             <div class="comments-section-wrapper">
                 <h5 class="fw-bold mb-3 text-white-50">
                     <i class="fas fa-comments me-2"></i>Обсуждение ({{ comments|length }})
@@ -87,8 +104,21 @@
                             <small class="text-muted">{{ c[3].strftime('%d.%m.%Y %H:%M') if c[3] else '' }}</small>
                         </div>
                         <div class="comment-body">
-                            <p class="mb-0 text-white">{{ c[2] }}</p>
-                        </div>
+							<p class="mb-0 text-white">{{ c[2] }}</p>
+
+							<!-- ВЛОЖЕНИЯ -->
+							<div class="attachments-list mt-2">
+								{% for f in attachments %}
+                                    {# f[1] - ID комментария, c[0] - ID текущего комментария #}
+									{% if f[1]|int == c[0]|int %}
+										<a href="/download/{{ f[0] }}" target="_blank" class="file-link-modern">
+											<i class="fas fa-file-download me-2"></i>
+											<span class="file-name-text">{{ f[2] }}</span>
+										</a>
+									{% endif %}
+								{% endfor %}
+							</div>
+						</div>
                     </div>
                     {% endfor %}
                 </div>
@@ -101,7 +131,6 @@
     <script src="{{ url_for('static', path='js/bootstrap.bundle.min.js') }}"></script>
     
     <script>
-        // Логика предпросмотра файла
         function showProjectFilePreview(input) {
             const preview = document.getElementById('project-file-preview');
             const nameSpan = document.getElementById('project-file-name');
@@ -110,7 +139,6 @@
                 preview.style.display = 'flex';
             }
         }
-
         function clearProjectFile() {
             const input = document.getElementById('comment-file');
             const preview = document.getElementById('project-file-preview');

@@ -258,11 +258,3 @@
     opacity: 1;
     color: #36BBCE !important; /* Подсветим синим при наведении */
 }
-/* Время в боковой панели последних комментариев */
-.comment-time-sidebar {
-    color: #ffffff !important; /* ЧИСТО БЕЛЫЙ ЦВЕТ */
-    opacity: 0.6;               /* Чуть приглушим, чтобы не отвлекало от текста */
-    font-size: 0.7rem;
-    white-space: nowrap;
-    text-decoration: none !important; /* Убираем подчеркивание, если оно есть */
-}

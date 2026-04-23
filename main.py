@@ -223,14 +223,17 @@ async def index(request: Request, user_name: str = Cookie(None), group_id: str =
                 ORDER BY "Id" DESC''', g=g_id)
 
     # 7. Последние комментарии в этой группе
-    last_comments = db.run('''
-        SELECT c."Text", c."AuthorName", p."Name", c."ProjectId" 
+    last_comments_raw = db.run('''
+        SELECT c."Text", c."AuthorName", p."Name", c."ProjectId", c."CreatedAt"
         FROM public."Comments" c
         JOIN public."Projects" p ON c."ProjectId" = p."Id"
         WHERE p."GroupId" = :g
         ORDER BY c."CreatedAt" DESC LIMIT 5
     ''', g=g_id)
-
+    last_comments = [
+        (r[0], r[1], r[2], r[3], format_time(r[4]))
+        for r in last_comments_raw
+    ]
     # 8. Чат группы
     raw_chat_messages = db.run('''
                 SELECT c."Id", c."AuthorName", c."Message", c."CreatedAt", a."Id", a."FileName"
